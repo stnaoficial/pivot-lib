@@ -1,11 +1,17 @@
 new Pivot({
     template: "banner",
-    attrs: {
-        interval: 1000
-    },
     funcs: {
         init() {
-            console.log(this)
+            console.log("Hello world!")
+        }
+    }
+});
+
+new Pivot({
+    template: "card",
+    funcs: {
+        init() {
+            console.log("Hello world!")
         }
     }
 });

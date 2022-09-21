@@ -23,99 +23,112 @@ function typify(arg: any, type: string, notNull: boolean = false): boolean {
     }
 }
 
-function getAttributes(attrPrefix: string, namedNodeMap: NamedNodeMap): Array<Attr> {
+function branchAttributes(attrPrefix: string, namedNodeMap: NamedNodeMap): Array<Attr> {
     let regExp = new RegExp(`${attrPrefix}-.*`, "g")
     return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(regExp)) return attr; });
 }
 
+
+
+
+
+
+
+
+
+
+
+
 declare namespace PivotCore {
     interface GlobalInstance {
-        sess:       PivotCore.GlobalSession;
-        prototype?: PivotCore.GlobalInstanceArguments;
+        sess:       PivotCore.GlobalInstanceSession;
+        prototype?: PivotCore.GlobalInstancePrototype;
     }
 
-    interface GlobalInstanceArguments {
-        template: string;
+    type GlobalInstancePrototype = {
+        template?: string;
+        attrs?:    object;
+        funcs?:    object;
     }
 
-    interface GlobalSession {
-        occurs: Array<PivotCore.Occurrence>;
+    type GlobalInstanceSession = {
+        occurs: Array<PivotCore.GlobalInstanceOccurrence>;
     }
 
-    interface Occurrence{
-        el?:    object      | null | undefined;
-        attrs?: Array<Attr> | null | undefined;
-        funcs?: Array<Attr> | null | undefined;
-    }
-
-    interface OccurrenceArguments{}
-}
-
-class HTMLPivotElement extends HTMLElement {
-    occur: PivotCore.Occurrence = new PivotOccurrence();
-
-    constructor() {
-        super();
-    }
-
-    connectedCallback() {
-        // Custom element added to page.
-        this.occur.el    = this;
-        this.occur.attrs = getAttributes("attr", this.attributes);
-        this.occur.funcs = getAttributes("func", this.attributes);
-        pivot.sess.occurs.push(this.occur);
-    }
-
-    disconnectedCallback() {
-        // Custom element removed from page.
-    }
-
-    adoptedCallback() {
-        // Custom element moved to new page.
-    }
-
-    attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-        // Custom element attributes changed.
-    }
-
-    static get observedAttributes() { return ['c', 'l']; }
-}
-
-class PivotSession implements PivotCore.GlobalSession {
-    occurs: PivotCore.Occurrence[];
-
-    constructor() {
-        this.occurs = [];
+    type GlobalInstanceOccurrence = {
+        template: HTMLElement;
+        attrs:    Array<Attr>;
+        funcs:    Array<Attr>;
     }
 }
 
-class PivotOccurrence implements PivotCore.Occurrence {
-    el?:    object      | null | undefined;
-    attrs?: Array<Attr> | null | undefined;
-    funcs?: Array<Attr> | null | undefined;
 
-    constructor() {
-        this.el    = null;
-        this.attrs = null;
-        this.funcs = null;
-    }
+
+
+
+
+
+
+
+class PivotSession implements PivotCore.GlobalInstanceSession {
+    occurs: PivotCore.GlobalInstanceOccurrence[] = [];
 }
 
-class Pivot implements PivotCore.GlobalInstance {
-    sess: PivotCore.GlobalSession = new PivotSession();
+class PivotGlobalInstanceOccurrence implements PivotCore.GlobalInstanceOccurrence {
+    template!: HTMLElement;
+    attrs!:    Array<Attr>;
+    funcs!:    Array<Attr>;
+}
 
-    readonly nodeName?: string;
+class Pivot implements PivotCore.GlobalInstancePrototype {
+    public readonly sess: PivotCore.GlobalInstanceSession = new PivotSession();
 
-    constructor(args?: PivotCore.GlobalInstanceArguments) {
+    protected localName?: string;
+
+    constructor(args?: PivotCore.GlobalInstancePrototype) {
         if (args === undefined) return;
 
-        this.nodeName = "template-" + args.template;
+        this.localName = "template-" + args.template;
 
-        customElements.define(this.nodeName, HTMLPivotElement);
+        customElements.define(this.localName, class extends HTMLElement {
+            occur: PivotCore.GlobalInstanceOccurrence = new PivotGlobalInstanceOccurrence();
+        
+            constructor() {
+                super();
+            }
+        
+            connectedCallback() {
+                // Custom element added to page.
+                this.occur.template = this;
+                this.occur.attrs    = branchAttributes("attr", this.attributes);
+                this.occur.funcs    = branchAttributes("func", this.attributes);
+                pivot.sess.occurs.push(this.occur);
+            }
+        
+            disconnectedCallback() {
+                // Custom element removed from page.
+            }
+        
+            adoptedCallback() {
+                // Custom element moved to new page.
+            }
+        
+            attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+                // Custom element attributes changed.
+            }
+        });
 
-        customElements.whenDefined(this.nodeName).then(() => {
-            console.trace("Elements defined!")
+        customElements.whenDefined(this.localName).then(() => {
+            pivot.sess.occurs.map((occur: PivotCore.GlobalInstanceOccurrence) => { if (occur.template.localName === this.localName) this.intercept(occur, args) })
         })
+    }
+
+    private intercept(occur: PivotCore.GlobalInstanceOccurrence, args: PivotCore.GlobalInstancePrototype): void {
+        Object.entries(args).map(([argName, argValue]) => {
+            console.log(occur[argName as keyof PivotCore.GlobalInstanceOccurrence]);
+
+            if (typeof argValue === "object") this.intercept(occur, argValue);
+        });
     }
 }
 const pivot = new Pivot();

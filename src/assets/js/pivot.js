@@ -21,55 +21,56 @@ function typify(arg, type, notNull = false) {
         return false;
     }
 }
-function getAttributes(attrPrefix, namedNodeMap) {
+function branchAttributes(attrPrefix, namedNodeMap) {
     let regExp = new RegExp(`${attrPrefix}-.*`, "g");
     return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(regExp))
         return attr; });
-}
-class HTMLPivotElement extends HTMLElement {
-    constructor() {
-        super();
-        this.occur = new PivotOccurrence();
-    }
-    connectedCallback() {
-        // Custom element added to page.
-        this.occur.el = this;
-        this.occur.attrs = getAttributes("attr", this.attributes);
-        this.occur.funcs = getAttributes("func", this.attributes);
-        pivot.sess.occurs.push(this.occur);
-    }
-    disconnectedCallback() {
-        // Custom element removed from page.
-    }
-    adoptedCallback() {
-        // Custom element moved to new page.
-    }
-    attributeChangedCallback(name, oldValue, newValue) {
-        // Custom element attributes changed.
-    }
-    static get observedAttributes() { return ['c', 'l']; }
 }
 class PivotSession {
     constructor() {
         this.occurs = [];
     }
 }
-class PivotOccurrence {
-    constructor() {
-        this.el = null;
-        this.attrs = null;
-        this.funcs = null;
-    }
+class PivotGlobalInstanceOccurrence {
 }
 class Pivot {
     constructor(args) {
         this.sess = new PivotSession();
         if (args === undefined)
             return;
-        this.nodeName = "template-" + args.template;
-        customElements.define(this.nodeName, HTMLPivotElement);
-        customElements.whenDefined(this.nodeName).then(() => {
-            console.trace("Elements defined!");
+        this.localName = "template-" + args.template;
+        customElements.define(this.localName, class extends HTMLElement {
+            constructor() {
+                super();
+                this.occur = new PivotGlobalInstanceOccurrence();
+            }
+            connectedCallback() {
+                // Custom element added to page.
+                this.occur.template = this;
+                this.occur.attrs = branchAttributes("attr", this.attributes);
+                this.occur.funcs = branchAttributes("func", this.attributes);
+                pivot.sess.occurs.push(this.occur);
+            }
+            disconnectedCallback() {
+                // Custom element removed from page.
+            }
+            adoptedCallback() {
+                // Custom element moved to new page.
+            }
+            attributeChangedCallback(name, oldValue, newValue) {
+                // Custom element attributes changed.
+            }
+        });
+        customElements.whenDefined(this.localName).then(() => {
+            pivot.sess.occurs.map((occur) => { if (occur.template.localName === this.localName)
+                this.intercept(occur, args); });
+        });
+    }
+    intercept(occur, args) {
+        Object.entries(args).map(([argName, argValue]) => {
+            console.log(occur[argName]);
+            if (typeof argValue === "object")
+                this.intercept(occur, argValue);
         });
     }
 }
