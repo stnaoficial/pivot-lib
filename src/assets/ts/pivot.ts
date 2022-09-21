@@ -1,181 +1,121 @@
-// // Globals
-// const emptyValues = [undefined];
-// const nullValues  = ["", 0, null];
-// /**
-//  * Checks if an argument can be asign
-//  * @function notEmpty()
-//  * @param { any } arg The taret arg
-//  */
-// function notEmpty( arg: any ): boolean { return ( emptyValues.indexOf( arg ) === -1 )? true : false; }
-// /**
-//  * Checks if an argument is null
-//  * @function isNull()
-//  * @param { any } arg The taret arg
-//  */
-// function isNull( arg: any ): boolean { return ( nullValues.indexOf( arg ) !== -1 )? true : false; }
-// /**
-//  * Checks rules
-//  * @function fitsIn()          Custom validation
-//  * @param { any }      arg     The taret argument
-//  * @param { string }   type    The type focus
-//  * @param { boolean }  notNull If is a not null value
-//  */
-// function fitsIn( arg: any, type: string, notNull: boolean = false ): boolean
-// {
-//     try {
-//         if ( notEmpty( arg ) && isNull( arg ) && notNull === true ) {
-//             throw `The argument cannot be null`;
-//         }
-//         if ( notEmpty( arg ) && typeof arg !== type ) {
-//             throw `The argument type must be a ${ type }. Getting "${ arg }" with type ${ typeof arg }`;
-//         }
-//         return true;
-//     } catch(e) {
-//         console.error(e);
-//         return false;
-//     }
-// }
-// declare namespace Ekran
-// {
-//     interface AnimationArguments
-//     {
-//         target:   string;
-//         interval?: number;
-//         timeout?:  number;
-//         init?:     any;
-//     }
-//     interface AnimationConstructor
-//     {
-//         new( args: AnimationArguments ): void;
-//     }
-//     interface Animation{}
-// }
+const nullValues  = ["", 0, null];
 
-// class EkranAnimation implements Ekran.Animation
-// {
-//     static target?:   HTMLElement | null;
-//     static interval?: number      | null;
-//     static timeout?:  number      | null;
-    
-//     constructor( args: Ekran.AnimationArguments ) {
-//         EkranAnimation.anim( args );
-//     }
-    
-//     static anim( args: Ekran.AnimationArguments ): void {
-//         if ( fitsIn(args.target,   "string", true) && notEmpty(args.target)   ) this.target   = document.querySelector(args.target);
-//         if ( fitsIn(args.interval, "number"      ) && notEmpty(args.interval) ) this.interval = args.interval;
-//         if ( fitsIn(args.timeout,  "number"      ) && notEmpty(args.timeout)  ) this.timeout  = args.timeout;
-//         if ( fitsIn(args.init,     "function"    ) && notEmpty(args.init)     ) args.init.apply(this);
-//     }
-// }
+function isEmpty(arg: any): boolean {
+    return (arg === undefined)? true : false;
+}
 
-// class EkranCore {
-//     anim = EkranAnimation.anim;
-// }
+function isNull(arg: any): boolean {
+    return (nullValues.indexOf(arg) !== -1)? true : false;
+}
 
-
-// const ekran = new EkranCore;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-declare namespace Pivot {
-    interface Arguments {
-        target: string;
-        init(): void;
-    }
-    interface Template {
-        template( args: Arguments ): void;
+function typify(arg: any, type: string, notNull: boolean = false): boolean {
+    try {
+        if (!isEmpty(arg) && isNull(arg) && notNull === true) {
+            throw `The argument cannot be null`;
+        }
+        if (!isEmpty(arg) && typeof arg !== type) {
+            throw `The argument type must be a ${ type }. Getting "${ arg }" with type "${ typeof arg }"`;
+        }
+        return true;
+    } catch(e) {
+        console.error(e);
+        return false;
     }
 }
 
-class PivotGlobals {
-    prefix: string = "template";
+function getAttributes(attrPrefix: string, namedNodeMap: NamedNodeMap): Array<Attr> {
+    let regExp = new RegExp(`${attrPrefix}-.*`, "g")
+    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(regExp)) return attr; });
 }
-const pivotGlobals = new PivotGlobals;
 
+declare namespace PivotCore {
+    interface GlobalInstance {
+        sess:       PivotCore.GlobalSession;
+        prototype?: PivotCore.GlobalInstanceArguments;
+    }
 
+    interface GlobalInstanceArguments {
+        template: string;
+    }
 
-class PivotSession {
-    occurs: object[] | any;
+    interface GlobalSession {
+        occurs: Array<PivotCore.Occurrence>;
+    }
+
+    interface Occurrence{
+        el?:    object      | null | undefined;
+        attrs?: Array<Attr> | null | undefined;
+        funcs?: Array<Attr> | null | undefined;
+    }
+
+    interface OccurrenceArguments{}
+}
+
+class HTMLPivotElement extends HTMLElement {
+    occur: PivotCore.Occurrence = new PivotOccurrence();
+
+    constructor() {
+        super();
+    }
+
+    connectedCallback() {
+        // Custom element added to page.
+        this.occur.el    = this;
+        this.occur.attrs = getAttributes("attr", this.attributes);
+        this.occur.funcs = getAttributes("func", this.attributes);
+        pivot.sess.occurs.push(this.occur);
+    }
+
+    disconnectedCallback() {
+        // Custom element removed from page.
+    }
+
+    adoptedCallback() {
+        // Custom element moved to new page.
+    }
+
+    attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+        // Custom element attributes changed.
+    }
+
+    static get observedAttributes() { return ['c', 'l']; }
+}
+
+class PivotSession implements PivotCore.GlobalSession {
+    occurs: PivotCore.Occurrence[];
 
     constructor() {
         this.occurs = [];
     }
 }
-const pivotSession = new PivotSession;
 
+class PivotOccurrence implements PivotCore.Occurrence {
+    el?:    object      | null | undefined;
+    attrs?: Array<Attr> | null | undefined;
+    funcs?: Array<Attr> | null | undefined;
 
-
-class PivotElement extends HTMLElement {
     constructor() {
-        super();
-    }
-    connectedCallback() {
-        // Custom element added to page.
-        pivotSession.occurs.push(this);
-    }
-    disconnectedCallback() {
-        // Custom element removed from page.
-        console.warn(this);
-    }
-      
-    adoptedCallback() {
-        // Custom element moved to new page.
-        console.warn(this);
-    }
-    attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-        // Custom element attributes changed.
-        console.warn(this);
-    }
-    static get observedAttributes() { return ['c', 'l']; }
-}
-
-
-
-class Pivot implements Pivot.Template {
-    elementName: string | any;
-    occur: HTMLElement | any;
-
-    template( args: Pivot.Arguments ): void {
-        this.elementName = `${ pivotGlobals.prefix }-${ args.target }`;
-
-        customElements.define( this.elementName, PivotElement );
-
-        pivotSession.occurs.filter( ( occur: HTMLElement ) => {
-            if ( this.elementName.toUpperCase() === occur.nodeName ) return this.set( occur, args );
-        });
-    }
-    
-    private set( occur: HTMLElement, args: Pivot.Arguments ): void {
-        if (args.init !== undefined) {
-            this.occur = occur;
-
-            args.init.apply(this)
-        }
+        this.el    = null;
+        this.attrs = null;
+        this.funcs = null;
     }
 }
 
+class Pivot implements PivotCore.GlobalInstance {
+    sess: PivotCore.GlobalSession = new PivotSession();
 
+    readonly nodeName?: string;
 
+    constructor(args?: PivotCore.GlobalInstanceArguments) {
+        if (args === undefined) return;
+
+        this.nodeName = "template-" + args.template;
+
+        customElements.define(this.nodeName, HTMLPivotElement);
+
+        customElements.whenDefined(this.nodeName).then(() => {
+            console.trace("Elements defined!")
+        })
+    }
+}
 const pivot = new Pivot();
