@@ -1,13 +1,10 @@
 const nullValues  = ["", 0, null];
-
 function isEmpty(arg: any): boolean {
     return (arg === undefined)? true : false;
 }
-
 function isNull(arg: any): boolean {
     return (nullValues.indexOf(arg) !== -1)? true : false;
 }
-
 function typify(arg: any, type: string, notNull: boolean = false): boolean {
     try {
         if (!isEmpty(arg) && isNull(arg) && notNull === true) {
@@ -22,113 +19,127 @@ function typify(arg: any, type: string, notNull: boolean = false): boolean {
         return false;
     }
 }
-
 function branchAttributes(attrPrefix: string, namedNodeMap: NamedNodeMap): Array<Attr> {
-    let regExp = new RegExp(`${attrPrefix}-.*`, "g")
-    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(regExp)) return attr; });
+    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(new RegExp(`${attrPrefix}-.*`, "g"))) return attr; });
 }
 
+type PivotOccurenceTemplateHandler = HTMLElement | null;
 
+type PivotOccurenceAttributesHandler = Array<Attr> | null;
 
+type PivotOccurenceFunctionsHandler = Array<Attr> | null;
 
-
-
-
-
-
-
-
-
-declare namespace PivotCore {
-    interface GlobalInstance {
-        sess:       PivotCore.GlobalInstanceSession;
-        prototype?: PivotCore.GlobalInstancePrototype;
-    }
-
-    type GlobalInstancePrototype = {
-        template?: string;
-        attrs?:    object;
-        funcs?:    object;
-    }
-
-    type GlobalInstanceSession = {
-        occurs: Array<PivotCore.GlobalInstanceOccurrence>;
-    }
-
-    type GlobalInstanceOccurrence = {
-        template: HTMLElement;
-        attrs:    Array<Attr>;
-        funcs:    Array<Attr>;
-    }
+type PivotOccurenceHandlers = {
+    template: PivotOccurenceTemplateHandler;
+    attrs: PivotOccurenceAttributesHandler;
+    funcs: PivotOccurenceFunctionsHandler; 
+}
+interface PivotOccurence {
+    new<T extends PivotOccurenceHandlers>(args: T): { args: T };
 }
 
+class PivotOccurence implements PivotOccurence {
+    template: PivotOccurenceTemplateHandler;
+    attrs: PivotOccurenceAttributesHandler;
+    funcs: PivotOccurenceFunctionsHandler;
 
-
-
-
-
-
-
-
-class PivotSession implements PivotCore.GlobalInstanceSession {
-    occurs: PivotCore.GlobalInstanceOccurrence[] = [];
+    constructor() {
+        this.template = null;
+        this.attrs    = null;
+        this.funcs    = null;
+    }
+}
+interface PivotSession {
+    occurs: Array<PivotOccurence>;
 }
 
-class PivotGlobalInstanceOccurrence implements PivotCore.GlobalInstanceOccurrence {
-    template!: HTMLElement;
-    attrs!:    Array<Attr>;
-    funcs!:    Array<Attr>;
+class PivotSession implements PivotSession {
+    occurs: Array<PivotOccurence> = [];
 }
 
-class Pivot implements PivotCore.GlobalInstancePrototype {
-    public readonly sess: PivotCore.GlobalInstanceSession = new PivotSession();
+type PivotTemplateHandler = string | null;
 
-    protected localName?: string;
+type PivotAttributesHandler = object | null;
 
-    constructor(args?: PivotCore.GlobalInstancePrototype) {
+type PivotFunctionsHandler = object | null;
+
+interface PivotHandlers {
+    template: PivotTemplateHandler;
+    attrs: PivotAttributesHandler;
+    funcs: PivotFunctionsHandler;
+}
+
+class PivotHandlers implements PivotHandlers {
+    template: PivotTemplateHandler;
+    attrs: PivotAttributesHandler;
+    funcs: PivotFunctionsHandler;
+
+    constructor() {
+        this.template = null;
+        this.attrs    = null;
+        this.funcs    = null;
+    }
+}
+interface Pivot {
+    sess: PivotSession;
+    args: PivotHandlers;
+    localName?: string;
+    new<T extends PivotHandlers>(args: T): { args: T };
+    interpret(occur: PivotOccurence): void;
+}
+
+class Pivot implements Pivot {
+    public sess: PivotSession = new PivotSession();
+    public args: PivotHandlers = new PivotHandlers();
+
+    localName?: string;
+
+    public constructor(args?: PivotHandlers) {
         if (args === undefined) return;
 
-        this.localName = "template-" + args.template;
+        this.args = args;
 
+        this.localName = "template-" + this.args.template;
         customElements.define(this.localName, class extends HTMLElement {
-            occur: PivotCore.GlobalInstanceOccurrence = new PivotGlobalInstanceOccurrence();
-        
-            constructor() {
+            public occur: PivotOccurence = new PivotOccurence();
+
+            public constructor() {
                 super();
             }
         
-            connectedCallback() {
+            private connectedCallback() {
                 // Custom element added to page.
                 this.occur.template = this;
-                this.occur.attrs    = branchAttributes("attr", this.attributes);
-                this.occur.funcs    = branchAttributes("func", this.attributes);
+                this.occur.attrs = branchAttributes("attr", this.attributes);
+                this.occur.funcs = branchAttributes("func", this.attributes);
                 pivot.sess.occurs.push(this.occur);
             }
         
-            disconnectedCallback() {
-                // Custom element removed from page.
-            }
+            // private disconnectedCallback() {
+            //     // Custom element removed from page.
+            // }
         
-            adoptedCallback() {
-                // Custom element moved to new page.
-            }
+            // private adoptedCallback() {
+            //     // Custom element moved to new page.
+            // }
         
-            attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-                // Custom element attributes changed.
-            }
+            // private attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+            //     // Custom element attributes changed.
+            // }
         });
 
-        customElements.whenDefined(this.localName).then(() => {
-            pivot.sess.occurs.map((occur: PivotCore.GlobalInstanceOccurrence) => { if (occur.template.localName === this.localName) this.intercept(occur, args) })
-        })
+        customElements.whenDefined(this.localName).then(() => { 
+            pivot.sess.occurs.map((occur: PivotOccurence) => { this.interpret(occur); });
+        });
     }
 
-    private intercept(occur: PivotCore.GlobalInstanceOccurrence, args: PivotCore.GlobalInstancePrototype): void {
-        Object.entries(args).map(([argName, argValue]) => {
-            console.log(occur[argName as keyof PivotCore.GlobalInstanceOccurrence]);
-
-            if (typeof argValue === "object") this.intercept(occur, argValue);
-        });
+    interpret(occur: PivotOccurence) {
+        if (
+            occur.template !== null 
+            && occur.template.localName === this.localName
+        ) {
+            console.log(occur.template, this.args);
+        }
     }
 }
 const pivot = new Pivot();

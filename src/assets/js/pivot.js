@@ -22,27 +22,40 @@ function typify(arg, type, notNull = false) {
     }
 }
 function branchAttributes(attrPrefix, namedNodeMap) {
-    let regExp = new RegExp(`${attrPrefix}-.*`, "g");
-    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(regExp))
+    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(new RegExp(`${attrPrefix}-.*`, "g")))
         return attr; });
+}
+class PivotOccurence {
+    constructor() {
+        this.template = null;
+        this.attrs = null;
+        this.funcs = null;
+    }
 }
 class PivotSession {
     constructor() {
         this.occurs = [];
     }
 }
-class PivotGlobalInstanceOccurrence {
+class PivotHandlers {
+    constructor() {
+        this.template = null;
+        this.attrs = null;
+        this.funcs = null;
+    }
 }
 class Pivot {
     constructor(args) {
         this.sess = new PivotSession();
+        this.args = new PivotHandlers();
         if (args === undefined)
             return;
-        this.localName = "template-" + args.template;
+        this.args = args;
+        this.localName = "template-" + this.args.template;
         customElements.define(this.localName, class extends HTMLElement {
             constructor() {
                 super();
-                this.occur = new PivotGlobalInstanceOccurrence();
+                this.occur = new PivotOccurence();
             }
             connectedCallback() {
                 // Custom element added to page.
@@ -51,27 +64,16 @@ class Pivot {
                 this.occur.funcs = branchAttributes("func", this.attributes);
                 pivot.sess.occurs.push(this.occur);
             }
-            disconnectedCallback() {
-                // Custom element removed from page.
-            }
-            adoptedCallback() {
-                // Custom element moved to new page.
-            }
-            attributeChangedCallback(name, oldValue, newValue) {
-                // Custom element attributes changed.
-            }
         });
         customElements.whenDefined(this.localName).then(() => {
-            pivot.sess.occurs.map((occur) => { if (occur.template.localName === this.localName)
-                this.intercept(occur, args); });
+            pivot.sess.occurs.map((occur) => { this.interpret(occur); });
         });
     }
-    intercept(occur, args) {
-        Object.entries(args).map(([argName, argValue]) => {
-            console.log(occur[argName]);
-            if (typeof argValue === "object")
-                this.intercept(occur, argValue);
-        });
+    interpret(occur) {
+        if (occur.template !== null
+            && occur.template.localName === this.localName) {
+            console.log(occur.template, this.args);
+        }
     }
 }
 const pivot = new Pivot();
