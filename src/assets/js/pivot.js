@@ -37,21 +37,15 @@ class PivotSession {
         this.occurs = [];
     }
 }
-class PivotHandlers {
-    constructor() {
-        this.template = null;
-        this.attrs = null;
-        this.funcs = null;
-    }
-}
 class Pivot {
-    constructor(args) {
+    constructor(handlers) {
         this.sess = new PivotSession();
-        this.args = new PivotHandlers();
-        if (args === undefined)
-            return;
-        this.args = args;
-        this.localName = "template-" + this.args.template;
+        if (handlers !== undefined)
+            this.applyHandlers(handlers);
+    }
+    applyHandlers(handlers) {
+        this.sess.handlers = handlers;
+        this.localName = "template-" + this.sess.handlers.template;
         customElements.define(this.localName, class extends HTMLElement {
             constructor() {
                 super();
@@ -64,16 +58,34 @@ class Pivot {
                 this.occur.funcs = branchAttributes("func", this.attributes);
                 pivot.sess.occurs.push(this.occur);
             }
+            disconnectedCallback() {
+                // Custom element removed from page.
+            }
+            adoptedCallback() {
+                // Custom element moved to new page.
+            }
+            attributeChangedCallback(name, oldValue, newValue) {
+                // Custom element attributes changed.
+            }
         });
         customElements.whenDefined(this.localName).then(() => {
-            pivot.sess.occurs.map((occur) => { this.interpret(occur); });
+            pivot.sess.occurs.filter((occur) => {
+                if (occur.template !== null
+                    && occur.template.localName === this.localName) {
+                    this.sess.occur = occur;
+                    if (this.sess.handlers !== undefined) {
+                        Object.entries(this.sess.handlers).map(handler => {
+                            if (this.sess.occur !== undefined) {
+                                this.handlerWillBeApplied(handler);
+                            }
+                        });
+                    }
+                }
+            });
         });
     }
-    interpret(occur) {
-        if (occur.template !== null
-            && occur.template.localName === this.localName) {
-            console.log(occur.template, this.args);
-        }
+    handlerWillBeApplied(handler) {
+        this.sess.handler = handler;
     }
 }
 const pivot = new Pivot();

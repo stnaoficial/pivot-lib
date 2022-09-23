@@ -15,3 +15,19 @@ new Pivot({
         }
     }
 });
+new class Test extends Pivot {
+    constructor() {
+        super();
+        this.applyHandlers({
+            template: "test",
+            attrs: {},
+            funcs: {
+                init() {
+                }
+            }
+        });
+    }
+    handlerWillBeApplied(handler) {
+        console.log(handler);
+    }
+};
