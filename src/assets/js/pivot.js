@@ -6,14 +6,10 @@ function isEmpty(arg) {
 function isNull(arg) {
     return (nullValues.indexOf(arg) !== -1) ? true : false;
 }
-function typify(arg, type, notNull = false) {
+function prevent(arg, type) {
     try {
-        if (!isEmpty(arg) && isNull(arg) && notNull === true) {
-            throw `The argument cannot be null`;
-        }
-        if (!isEmpty(arg) && typeof arg !== type) {
-            throw `The argument type must be a ${type}. Getting "${arg}" with type "${typeof arg}"`;
-        }
+        if (!isEmpty(arg) && typeof arg === type)
+            throw `The argument cannot be ${type}. Getting "${arg}" with type "${typeof arg}"`;
         return true;
     }
     catch (e) {
@@ -21,15 +17,23 @@ function typify(arg, type, notNull = false) {
         return false;
     }
 }
-function branchAttributes(attrPrefix, namedNodeMap) {
-    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(new RegExp(`${attrPrefix}-.*`, "g")))
-        return attr; });
+function restrict(arg, type, notNull = false) {
+    try {
+        if (!isEmpty(arg) && isNull(arg) && notNull === true)
+            throw `The argument cannot be ${typeof arg}`;
+        if (!isEmpty(arg) && typeof arg !== type)
+            throw `The argument type must be a ${type}. Getting "${arg}" with type "${typeof arg}"`;
+        return true;
+    }
+    catch (e) {
+        console.error(e);
+        return false;
+    }
 }
 class PivotOccurence {
     constructor() {
         this.template = null;
-        this.attrs = null;
-        this.funcs = null;
+        this.dataset = null;
     }
 }
 class PivotSession {
@@ -38,54 +42,50 @@ class PivotSession {
     }
 }
 class Pivot {
-    constructor(handlers) {
+    constructor(args) {
         this.sess = new PivotSession();
-        if (handlers !== undefined)
-            this.applyHandlers(handlers);
+        if (args !== undefined)
+            this.setArguments(args);
     }
-    applyHandlers(handlers) {
-        this.sess.handlers = handlers;
-        this.localName = "template-" + this.sess.handlers.template;
-        customElements.define(this.localName, class extends HTMLElement {
-            constructor() {
-                super();
-                this.occur = new PivotOccurence();
-            }
-            connectedCallback() {
-                // Custom element added to page.
-                this.occur.template = this;
-                this.occur.attrs = branchAttributes("attr", this.attributes);
-                this.occur.funcs = branchAttributes("func", this.attributes);
-                pivot.sess.occurs.push(this.occur);
-            }
-            disconnectedCallback() {
-                // Custom element removed from page.
-            }
-            adoptedCallback() {
-                // Custom element moved to new page.
-            }
-            attributeChangedCallback(name, oldValue, newValue) {
-                // Custom element attributes changed.
-            }
-        });
-        customElements.whenDefined(this.localName).then(() => {
-            pivot.sess.occurs.filter((occur) => {
-                if (occur.template !== null
-                    && occur.template.localName === this.localName) {
-                    this.sess.occur = occur;
-                    if (this.sess.handlers !== undefined) {
-                        Object.entries(this.sess.handlers).map(handler => {
-                            if (this.sess.occur !== undefined) {
-                                this.handlerWillBeApplied(handler);
-                            }
-                        });
-                    }
-                }
-            });
+    // start(): void {
+    //     if (this.args === undefined || this.args.template === undefined) throw `Argument cannot be undefined`; 
+    //     pivot.sess.occurs = [];
+    //     customElements.define("template-" + this.args.template, class extends HTMLElement {
+    //         occur: PivotOccurence = new PivotOccurence();
+    //         constructor() {
+    //             super();
+    //         }
+    //         connectedCallback() {
+    //             this.occur.template = this;
+    //             this.occur.dataset = this.dataset;
+    //             pivot.sess.occurs.push(this.occur);
+    //         }
+    //     });
+    //     this.sess.occurs = pivot.sess.occurs;
+    // }
+    setArguments(args) {
+        this.args = args;
+        Object.entries(this.args).map((arg) => {
+            let [argName, argValue] = arg;
+            if (argName === undefined)
+                throw `Argument name cannot be undefined`;
+            if (argValue === undefined)
+                throw `Argument value cannot be undefined`;
+            this.setArgument(argName, argValue);
         });
     }
-    handlerWillBeApplied(handler) {
-        this.sess.handler = handler;
+    argumentWillBeSet(argName, argValue) {
+        return [argName, argValue];
+    }
+    setArgument(argName, argValue) {
+        if (argName === undefined)
+            throw `Argument name cannot be undefined`;
+        if (argValue === undefined)
+            throw `Argument value cannot be undefined`;
+        if (this.args === undefined)
+            this.args = {};
+        [argName, argValue] = this.argumentWillBeSet(argName, argValue);
+        this.args[argName] = argValue;
     }
 }
 const pivot = new Pivot();

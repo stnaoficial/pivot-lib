@@ -8,14 +8,9 @@ function isNull(arg: any): boolean {
     return (nullValues.indexOf(arg) !== -1)? true : false;
 }
 
-function typify(arg: any, type: string, notNull: boolean = false): boolean {
+function prevent(arg: any, type: any): boolean {
     try {
-        if (!isEmpty(arg) && isNull(arg) && notNull === true) {
-            throw `The argument cannot be null`;
-        }
-        if (!isEmpty(arg) && typeof arg !== type) {
-            throw `The argument type must be a ${ type }. Getting "${ arg }" with type "${ typeof arg }"`;
-        }
+        if (!isEmpty(arg) && typeof arg === type) throw `The argument cannot be ${type}. Getting "${arg}" with type "${typeof arg}"`;
         return true;
     } catch(e) {
         console.error(e);
@@ -23,137 +18,120 @@ function typify(arg: any, type: string, notNull: boolean = false): boolean {
     }
 }
 
-function branchAttributes(attrPrefix: string, namedNodeMap: NamedNodeMap): Array<Attr> {
-    return Object.values(namedNodeMap).filter(attr => { if (attr.name.match(new RegExp(`${attrPrefix}-.*`, "g"))) return attr; });
+function restrict(arg: any, type: string, notNull: boolean = false): boolean {
+    try {
+        if (!isEmpty(arg) && isNull(arg) && notNull === true) throw `The argument cannot be ${typeof arg}`;
+        if (!isEmpty(arg) && typeof arg !== type) throw `The argument type must be a ${type}. Getting "${arg}" with type "${typeof arg}"`;
+        return true;
+    } catch(e) {
+        console.error(e);
+        return false;
+    }
 }
 
 type PivotOccurenceTemplateHandler = HTMLElement | null;
 
-type PivotOccurenceAttributesHandler = Array<Attr> | null;
+type PivotOccurenceDatasetHandler = DOMStringMap | null;
 
-type PivotOccurenceFunctionsHandler = Array<Attr> | null;
-
-type PivotOccurenceHandler = PivotOccurenceTemplateHandler | PivotOccurenceAttributesHandler | PivotOccurenceFunctionsHandler | null;
+type PivotOccurenceHandler = PivotOccurenceTemplateHandler | PivotOccurenceDatasetHandler | null;
 
 type PivotOccurenceHandlers = {
     template: PivotOccurenceTemplateHandler;
-    attrs: PivotOccurenceAttributesHandler;
-    funcs: PivotOccurenceFunctionsHandler; 
+    dataset: PivotOccurenceDatasetHandler;
 }
 interface PivotOccurence {
-    new<T extends PivotOccurenceHandlers>(handlers: T): { handlers: T };
+    template: PivotOccurenceTemplateHandler;
+    dataset: PivotOccurenceDatasetHandler;
 }
 
 class PivotOccurence implements PivotOccurence {
     template: PivotOccurenceTemplateHandler;
-    attrs: PivotOccurenceAttributesHandler;
-    funcs: PivotOccurenceFunctionsHandler;
+    dataset: PivotOccurenceDatasetHandler;
 
     constructor() {
         this.template = null;
-        this.attrs    = null;
-        this.funcs    = null;
+        this.dataset  = null;
     }
 }
 interface PivotSession {
     occurs: Array<PivotOccurence>;
-    occur?: PivotOccurence;
-    handlers?: PivotHandlers;
-    handler?: PivotHandler;
 }
 
 class PivotSession implements PivotSession {
     occurs: Array<PivotOccurence> = [];
-    occur?: PivotOccurence;
-    handlers?: PivotHandlers;
-    handler?: PivotHandler;
 }
 
-type PivotTemplateHandler = string | null;
+type PivotTemplateArgument = string | null;
 
-type PivotAttributesHandler = object | null;
+type PivotDatasetArgument = any | null;
 
-type PivotFunctionsHandler = object | null;
+type PivotArgument = PivotTemplateArgument | PivotDatasetArgument | null;
 
-type PivotHandler = PivotTemplateHandler | PivotAttributesHandler | PivotFunctionsHandler | null;
-
-interface PivotHandlers {
-    template: PivotTemplateHandler;
-    attrs: PivotAttributesHandler;
-    funcs: PivotFunctionsHandler;
+interface PivotArguments {
+    template?: PivotTemplateArgument;
+    dataset?: PivotDatasetArgument;
 }
 interface Pivot {
     sess: PivotSession;
-    localName?: string;
-    new<T extends PivotHandlers>(handlers: T): { handlers: T };
-    applyHandlers(handlers: PivotHandlers): void;
-    handlerWillBeApplied(handler: PivotHandler, occurHandler: PivotOccurence): void;
+    args?: PivotArguments;
+    new<T extends PivotArguments>(args: T): { args: T };
+    start(): void;
+    setArguments(args: PivotArguments): void;
+    argumentWillBeSet(argName: string, argValue: PivotArgument): PivotArgument;
+    setArgument(argName: string, argValue: PivotArgument): void;
 }
 
 class Pivot implements Pivot {
     public sess: PivotSession = new PivotSession();
 
-    localName?: string;
+    args?: PivotArguments;
 
-    constructor(handlers?: PivotHandlers) {
-        if (handlers !== undefined) this.applyHandlers(handlers);
+    constructor(args?: PivotArguments) {
+        if (args !== undefined) this.setArguments(args);
     }
 
-    applyHandlers(handlers: PivotHandlers) {
-        this.sess.handlers = handlers;
+    // start(): void {
+    //     if (this.args === undefined || this.args.template === undefined) throw `Argument cannot be undefined`; 
 
-        this.localName = "template-" + this.sess.handlers.template;
-        customElements.define(this.localName, class extends HTMLElement {
-            occur: PivotOccurence = new PivotOccurence();
+    //     pivot.sess.occurs = [];
+    //     customElements.define("template-" + this.args.template, class extends HTMLElement {
+    //         occur: PivotOccurence = new PivotOccurence();
 
-            constructor() {
-                super();
-            }
+    //         constructor() {
+    //             super();
+    //         }
         
-            connectedCallback() {
-                // Custom element added to page.
-                this.occur.template = this;
-                this.occur.attrs = branchAttributes("attr", this.attributes);
-                this.occur.funcs = branchAttributes("func", this.attributes);
-                pivot.sess.occurs.push(this.occur);
-            }
-        
-            disconnectedCallback() {
-                // Custom element removed from page.
-            }
-        
-            adoptedCallback() {
-                // Custom element moved to new page.
-            }
-        
-            attributeChangedCallback(name: string, oldValue: any, newValue: any) {
-                // Custom element attributes changed.
-            }
-        });
+    //         connectedCallback() {
+    //             this.occur.template = this;
+    //             this.occur.dataset = this.dataset;
+    //             pivot.sess.occurs.push(this.occur);
+    //         }
+    //     });
 
-        customElements.whenDefined(this.localName).then(() => {
-            pivot.sess.occurs.filter((occur: PivotOccurence) => {
-                if (
-                    occur.template !== null
-                    && occur.template.localName === this.localName
-                ) {
-                    this.sess.occur = occur;
-
-                    if (this.sess.handlers !== undefined) {
-                        Object.entries(this.sess.handlers).map(handler => {
-                            if (this.sess.occur !== undefined) {
-                                this.handlerWillBeApplied(handler);
-                            }
-                        });
-                    }
-
-                }
-            });
+    //     this.sess.occurs = pivot.sess.occurs;
+    // }
+    
+    setArguments(args: PivotArguments) {
+        this.args = args;
+        Object.entries(this.args).map((arg: PivotArgument) => {
+            let [argName, argValue] = arg;
+            if (argName === undefined) throw `Argument name cannot be undefined`; 
+            if (argValue === undefined) throw `Argument value cannot be undefined`; 
+            this.setArgument(argName, argValue);
         });
     }
 
-    handlerWillBeApplied(handler: PivotHandler): void {
-        this.sess.handler = handler;
+    argumentWillBeSet(argName: string, argValue: PivotArgument): PivotArgument {
+        return [argName, argValue];
+    }
+
+    setArgument(argName: string, argValue: PivotArgument): void {
+        if (argName === undefined) throw `Argument name cannot be undefined`; 
+        if (argValue === undefined) throw `Argument value cannot be undefined`;
+        if (this.args === undefined) this.args = {};
+        [argName, argValue] = this.argumentWillBeSet(argName, argValue);
+        this.args[argName as keyof PivotArguments] = argValue;
     }
 }
+
 const pivot = new Pivot();
