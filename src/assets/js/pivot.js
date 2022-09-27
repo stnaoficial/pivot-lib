@@ -44,48 +44,34 @@ class PivotSession {
 class Pivot {
     constructor(args) {
         this.sess = new PivotSession();
-        if (args !== undefined)
-            this.setArguments(args);
-    }
-    // start(): void {
-    //     if (this.args === undefined || this.args.template === undefined) throw `Argument cannot be undefined`; 
-    //     pivot.sess.occurs = [];
-    //     customElements.define("template-" + this.args.template, class extends HTMLElement {
-    //         occur: PivotOccurence = new PivotOccurence();
-    //         constructor() {
-    //             super();
-    //         }
-    //         connectedCallback() {
-    //             this.occur.template = this;
-    //             this.occur.dataset = this.dataset;
-    //             pivot.sess.occurs.push(this.occur);
-    //         }
-    //     });
-    //     this.sess.occurs = pivot.sess.occurs;
-    // }
-    setArguments(args) {
-        this.args = args;
-        Object.entries(this.args).map((arg) => {
-            let [argName, argValue] = arg;
-            if (argName === undefined)
-                throw `Argument name cannot be undefined`;
-            if (argValue === undefined)
-                throw `Argument value cannot be undefined`;
-            this.setArgument(argName, argValue);
+        if (args !== undefined) {
+            this.args = args;
+        }
+        new Promise((resolve, reject) => {
+            if (this.args !== undefined) {
+                resolve(this._init());
+            }
+        }).then(() => {
+            console.log(this.args);
         });
     }
-    argumentWillBeSet(argName, argValue) {
-        return [argName, argValue];
-    }
-    setArgument(argName, argValue) {
-        if (argName === undefined)
-            throw `Argument name cannot be undefined`;
-        if (argValue === undefined)
-            throw `Argument value cannot be undefined`;
-        if (this.args === undefined)
-            this.args = {};
-        [argName, argValue] = this.argumentWillBeSet(argName, argValue);
-        this.args[argName] = argValue;
+    _init() {
+        if (this.args !== undefined && this.args.template !== undefined) {
+            pivot.sess.occurs = [];
+            customElements.define("template-" + this.args.template, class extends HTMLElement {
+                constructor() {
+                    super();
+                    this.occur = new PivotOccurence();
+                }
+                connectedCallback() {
+                    this.occur.template = this;
+                    this.occur.dataset = this.dataset;
+                    pivot.sess.occurs.push(this.occur);
+                }
+            });
+            this.sess.occurs = pivot.sess.occurs;
+            console.log(this.sess.occurs);
+        }
     }
 }
 const pivot = new Pivot();

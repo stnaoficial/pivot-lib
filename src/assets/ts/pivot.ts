@@ -8,7 +8,7 @@ function isNull(arg: any): boolean {
     return (nullValues.indexOf(arg) !== -1)? true : false;
 }
 
-function prevent(arg: any, type: any): boolean {
+function prevent(arg: any, type: string): boolean {
     try {
         if (!isEmpty(arg) && typeof arg === type) throw `The argument cannot be ${type}. Getting "${arg}" with type "${typeof arg}"`;
         return true;
@@ -75,10 +75,6 @@ interface Pivot {
     sess: PivotSession;
     args?: PivotArguments;
     new<T extends PivotArguments>(args: T): { args: T };
-    start(): void;
-    setArguments(args: PivotArguments): void;
-    argumentWillBeSet(argName: string, argValue: PivotArgument): PivotArgument;
-    setArgument(argName: string, argValue: PivotArgument): void;
 }
 
 class Pivot implements Pivot {
@@ -86,51 +82,41 @@ class Pivot implements Pivot {
 
     args?: PivotArguments;
 
-    constructor(args?: PivotArguments) {
-        if (args !== undefined) this.setArguments(args);
-    }
-
-    // start(): void {
-    //     if (this.args === undefined || this.args.template === undefined) throw `Argument cannot be undefined`; 
-
-    //     pivot.sess.occurs = [];
-    //     customElements.define("template-" + this.args.template, class extends HTMLElement {
-    //         occur: PivotOccurence = new PivotOccurence();
-
-    //         constructor() {
-    //             super();
-    //         }
+    constructor(args?: PivotArguments) { 
+        if (args !== undefined) {
+            this.args = args;
+        }
         
-    //         connectedCallback() {
-    //             this.occur.template = this;
-    //             this.occur.dataset = this.dataset;
-    //             pivot.sess.occurs.push(this.occur);
-    //         }
-    //     });
+        new Promise((resolve, reject) => {
+            if (this.args !== undefined) {
+                resolve(this._init())
+            }
+        }).then(() => {
+            console.log(this.args)
+        })
+    }
 
-    //     this.sess.occurs = pivot.sess.occurs;
-    // }
+    private _init(): void {
+        if (this.args !== undefined && this.args.template !== undefined) {
+            pivot.sess.occurs = [];
+            customElements.define("template-" + this.args.template, class extends HTMLElement {
+                occur: PivotOccurence = new PivotOccurence();
     
-    setArguments(args: PivotArguments) {
-        this.args = args;
-        Object.entries(this.args).map((arg: PivotArgument) => {
-            let [argName, argValue] = arg;
-            if (argName === undefined) throw `Argument name cannot be undefined`; 
-            if (argValue === undefined) throw `Argument value cannot be undefined`; 
-            this.setArgument(argName, argValue);
-        });
-    }
+                constructor() {
+                    super();
+                }
+            
+                connectedCallback() {
+                    this.occur.template = this;
+                    this.occur.dataset = this.dataset;
+                    pivot.sess.occurs.push(this.occur);
+                }
+            });
+    
+            this.sess.occurs = pivot.sess.occurs;
 
-    argumentWillBeSet(argName: string, argValue: PivotArgument): PivotArgument {
-        return [argName, argValue];
-    }
-
-    setArgument(argName: string, argValue: PivotArgument): void {
-        if (argName === undefined) throw `Argument name cannot be undefined`; 
-        if (argValue === undefined) throw `Argument value cannot be undefined`;
-        if (this.args === undefined) this.args = {};
-        [argName, argValue] = this.argumentWillBeSet(argName, argValue);
-        this.args[argName as keyof PivotArguments] = argValue;
+            console.log(this.sess.occurs)
+        }
     }
 }
 
