@@ -6,7 +6,7 @@ function isEmpty(arg) {
 function isNull(arg) {
     return (nullValues.indexOf(arg) !== -1) ? true : false;
 }
-function prevent(arg, type) {
+function preventTo(arg, type) {
     try {
         if (!isEmpty(arg) && typeof arg === type)
             throw `The argument cannot be ${type}. Getting "${arg}" with type "${typeof arg}"`;
@@ -17,7 +17,7 @@ function prevent(arg, type) {
         return false;
     }
 }
-function restrict(arg, type, notNull = false) {
+function restrictTo(arg, type, notNull = false) {
     try {
         if (!isEmpty(arg) && isNull(arg) && notNull === true)
             throw `The argument cannot be ${typeof arg}`;
@@ -30,48 +30,89 @@ function restrict(arg, type, notNull = false) {
         return false;
     }
 }
-class PivotOccurence {
-    constructor() {
-        this.template = null;
-        this.dataset = null;
-    }
-}
-class PivotSession {
-    constructor() {
-        this.occurs = [];
-    }
-}
-class Pivot {
-    constructor(args) {
-        this.sess = new PivotSession();
-        if (args !== undefined) {
-            this.args = args;
-        }
-        new Promise((resolve, reject) => {
-            if (this.args !== undefined) {
-                resolve(this._init());
+function iterate(args, callback) {
+    try {
+        if (isEmpty(args))
+            throw `The arguments cannot be ${typeof args}`;
+        if (isEmpty(callback))
+            throw `The callback cannot be ${typeof callback}`;
+        Object.entries(args).map(([argName, argValue]) => {
+            if (typeof argValue === "object") {
+                iterate(argValue, callback);
             }
-        }).then(() => {
-            console.log(this.args);
+            else {
+                callback(argName, argValue);
+            }
         });
     }
-    _init() {
-        if (this.args !== undefined && this.args.template !== undefined) {
-            pivot.sess.occurs = [];
-            customElements.define("template-" + this.args.template, class extends HTMLElement {
-                constructor() {
-                    super();
-                    this.occur = new PivotOccurence();
-                }
-                connectedCallback() {
-                    this.occur.template = this;
-                    this.occur.dataset = this.dataset;
-                    pivot.sess.occurs.push(this.occur);
-                }
-            });
-            this.sess.occurs = pivot.sess.occurs;
-            console.log(this.sess.occurs);
-        }
+    catch (e) {
+        console.error(e);
     }
 }
-const pivot = new Pivot();
+function merge(args, newArgs) {
+    try {
+        iterate(args, (argName, argValue) => {
+            if (!isEmpty(args)
+                && !isEmpty(newArgs)) {
+                if (!isEmpty(newArgs[argName])) {
+                    args[argName] = newArgs[argName];
+                }
+            }
+        });
+        return args;
+    }
+    catch (e) {
+        console.error(e);
+    }
+}
+var sess = new class Session {
+    constructor() {
+        this.name = "Session";
+        this.customElementsOccurrences = [];
+    }
+};
+class Pivot {
+    constructor(args) {
+        this.name = "Pivot";
+        this.args = {};
+        if (args === undefined
+            || args === null)
+            return;
+        sess.customElementsOccurrences = [];
+        customElements.define(`template-${args.template}`, class extends HTMLElement {
+            constructor() {
+                super();
+            }
+            connectedCallback() {
+                sess.customElementsOccurrences.push(this);
+            }
+        });
+        customElements.whenDefined(`template-${args.template}`).then(() => {
+            sess.customElementsOccurrences.map(occur => {
+                this.args = { ...args };
+                if (this.args !== undefined
+                    && this.args !== null) {
+                    if (this.args.data !== undefined
+                        && this.args.data !== null) {
+                        this.args.data = merge(this.args.data, occur.dataset);
+                    }
+                    if (this.args.handler !== undefined
+                        && this.args.handler !== null) {
+                        iterate(this.args.handler, (handlerName, handlerValue) => {
+                            if (this.args !== undefined
+                                && this.args !== null) {
+                                switch (handlerName) {
+                                    case "init":
+                                        handlerValue.apply(this.args.data);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    }
+}
