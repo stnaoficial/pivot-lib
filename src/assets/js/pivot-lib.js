@@ -1,8 +1,8 @@
 "use strict";
-new class Console extends Pivot {
+new class Writer extends Pivot {
     constructor() {
         super({
-            template: "console",
+            template: "writer",
             dataset: {
                 message: "placeholder",
                 interval: 50,
