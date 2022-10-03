@@ -5,28 +5,29 @@ new class Console extends Pivot {
             dataset: {
                 message: "placeholder",
                 interval: 50,
-                timeout: 0
+                timeout: 0,
+                onloadclass: ""
             }
         });
     }
     whenDefined(occur: HTMLElement): void {
         if (this.args === undefined) return;
 
-        restrictTo(this.args.dataset.message, "string", true)
-        restrictTo(parseInt(this.args.dataset.interval), "number", true)
-        restrictTo(parseInt(this.args.dataset.timeout), "number")
-        
+        restrictTo(this.args.dataset.message, "string", true);
+        restrictTo(parseInt(this.args.dataset.interval), "number", true);
+        restrictTo(parseInt(this.args.dataset.timeout), "number");
+        restrictTo(this.args.dataset.onloadclass, "string");
+
         let message = this.args.dataset.message;
         let interval = parseInt(this.args.dataset.interval);
         let timeout = parseInt(this.args.dataset.timeout);
+        let onloadclass = this.args.dataset.onloadclass;
         let alreadyInitialized = false;
-
-        occur.style.display = "none";
-
+        
         init();
-
-        window.addEventListener("scroll", (evt) => { init(); }, true);
-
+        
+        window.addEventListener("scroll", () => { init(); }, true);
+        
         function init(): void {
             if (!alreadyInitialized && inViewport(occur)) {
                 alreadyInitialized = true;
@@ -37,9 +38,9 @@ new class Console extends Pivot {
                 }
             }
         }
-
+        
         function startTyping(): void {
-            occur.style.display = "block";
+            if (!isNull(onloadclass)) occur.classList.add(onloadclass);
             setCounter((newValue) => {
                 if (message[newValue as keyof (typeof message)] !== undefined) {
                     occur.innerHTML += message[newValue as keyof (typeof message)];

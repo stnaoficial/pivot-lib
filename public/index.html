@@ -8,6 +8,7 @@
     <title>Document</title>
 </head>
 <body>
+    <div style="height: 100vh;"></div>
     <section class="main-section">
         <article class="brand-group">
             <figcaption class="brand-caption">
@@ -17,14 +18,17 @@
             <div class="output-area">
                 <template-console
                     data-message="Hello!"
+                    data-onloadclass="loaded"
                 ></template-console>
                 <template-console
                     data-message="This is an example using Console."
                     data-timeout="1000"
+                    data-onloadclass="loaded"
                 ></template-console>
                 <template-console
                     data-message="It just works!"
                     data-timeout="3000"
+                    data-onloadclass="loaded"
                 ></template-console>
             </div>
         </article>
