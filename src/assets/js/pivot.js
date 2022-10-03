@@ -30,7 +30,7 @@ function restrictTo(arg, type, notNull = false) {
         return false;
     }
 }
-function iterate(args, callback) {
+function iterate(callback, args) {
     try {
         if (isEmpty(args))
             throw `The arguments cannot be ${typeof args}`;
@@ -38,7 +38,7 @@ function iterate(args, callback) {
             throw `The callback cannot be ${typeof callback}`;
         Object.entries(args).map(([argName, argValue]) => {
             if (typeof argValue === "object") {
-                iterate(argValue, callback);
+                iterate(callback, argValue);
             }
             else {
                 callback(argName, argValue);
@@ -51,68 +51,59 @@ function iterate(args, callback) {
 }
 function merge(args, newArgs) {
     try {
-        iterate(args, (argName, argValue) => {
-            if (!isEmpty(args)
-                && !isEmpty(newArgs)) {
+        if (!isEmpty(args)
+            && !isEmpty(newArgs)) {
+            iterate((argName, argValue) => {
                 if (!isEmpty(newArgs[argName])) {
                     args[argName] = newArgs[argName];
                 }
-            }
-        });
+            }, newArgs);
+        }
         return args;
     }
     catch (e) {
         console.error(e);
     }
 }
-var sess = new class Session {
+function setCounter(callback, intialValue, lastValue, interval) {
+    let newValue = intialValue;
+    let intervalId = setInterval(() => { callback(newValue); newValue++; if (newValue >= lastValue)
+        clearInterval(intervalId); }, interval);
+}
+function inViewport(el) {
+    return el.getBoundingClientRect().top >= 0 && el.getBoundingClientRect().top <= window.innerHeight;
+}
+class PivotSession {
     constructor() {
-        this.name = "Session";
-        this.customElementsOccurrences = [];
+        this.name = "PivotSession";
     }
-};
+    static UseCustomElementTemplateName(templateName) {
+        let occurs = [];
+        customElements.define(templateName, class extends HTMLElement {
+            constructor() { super(); }
+            connectedCallback() { occurs.push(this); }
+        });
+        return occurs;
+    }
+}
 class Pivot {
     constructor(args) {
         this.name = "Pivot";
         this.args = {};
-        if (args === undefined
-            || args === null)
+        if (args === undefined)
             return;
-        sess.customElementsOccurrences = [];
-        customElements.define(`template-${args.template}`, class extends HTMLElement {
-            constructor() {
-                super();
-            }
-            connectedCallback() {
-                sess.customElementsOccurrences.push(this);
-            }
-        });
-        customElements.whenDefined(`template-${args.template}`).then(() => {
-            sess.customElementsOccurrences.map(occur => {
-                this.args = { ...args };
-                if (this.args !== undefined
-                    && this.args !== null) {
-                    if (this.args.data !== undefined
-                        && this.args.data !== null) {
-                        this.args.data = merge(this.args.data, occur.dataset);
-                    }
-                    if (this.args.handler !== undefined
-                        && this.args.handler !== null) {
-                        iterate(this.args.handler, (handlerName, handlerValue) => {
-                            if (this.args !== undefined
-                                && this.args !== null) {
-                                switch (handlerName) {
-                                    case "init":
-                                        handlerValue.apply(this.args.data);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                        });
-                    }
-                }
+        let templateName = `template-${args.template}`;
+        let occurs = PivotSession.UseCustomElementTemplateName(templateName);
+        customElements.whenDefined(templateName).then(() => {
+            this.args = { ...args };
+            occurs.map(occur => {
+                if (this.args === undefined)
+                    return;
+                this.args.dataset = { ...args.dataset };
+                this.args.dataset = merge(this.args.dataset, occur.dataset);
+                this.whenDefined(occur);
             });
         });
     }
+    whenDefined(occur) { }
 }

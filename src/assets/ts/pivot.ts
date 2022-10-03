@@ -29,13 +29,13 @@ function restrictTo(arg: any, type: string, notNull: boolean = false): boolean {
     }
 }
 
-function iterate(args: object, callback: (argName: string, argValue: any) => void): void {
+function iterate(callback: (argName: string, argValue: any) => void, args: object): void {
     try {
         if (isEmpty(args)) throw `The arguments cannot be ${typeof args}`;
         if (isEmpty(callback)) throw `The callback cannot be ${typeof callback}`;
         Object.entries(args).map(([argName, argValue]) => {
             if (typeof argValue === "object") {
-                iterate(argValue, callback);
+                iterate(callback, argValue);
             } else {
                 callback(argName, argValue);
             }
@@ -47,43 +47,36 @@ function iterate(args: object, callback: (argName: string, argValue: any) => voi
 
 function merge(args: object, newArgs: object): object | undefined {
     try {
-        iterate(args, (argName: string, argValue: any) => {
-            if (
-                !isEmpty(args)
-                && !isEmpty(newArgs)
-            ) {
+        if (
+            !isEmpty(args)
+            && !isEmpty(newArgs)
+        ) {
+            iterate((argName: string, argValue: any) => {
                 if (
                     !isEmpty(newArgs[argName as keyof typeof newArgs])
                 ) {
                     args[argName as keyof typeof args] = newArgs[argName as keyof typeof newArgs];
                 }
-            }
-        });
+            }, newArgs);
+        }
         return args;
     } catch(e) {
         console.error(e)
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-interface Session {
-    customElementsOccurrences: Array<HTMLElement>;
+function setCounter(callback: (value: number) => void, intialValue: number, lastValue: number, interval: number): void {
+    let newValue = intialValue;
+    let intervalId = setInterval(() => { callback(newValue); newValue++; if (newValue >= lastValue) clearInterval(intervalId); }, interval);
 }
 
-var sess = new class Session implements Session {
-    name: string = "Session"
-    customElementsOccurrences: Array<HTMLElement> = [];
+function inViewport(el: HTMLElement): boolean {
+    return el.getBoundingClientRect().top >= 0 && el.getBoundingClientRect().top <= window.innerHeight;
 }
+
+
+
+
 
 type PivotTemplateArgument = string | null;
 
@@ -95,72 +88,68 @@ type PivotArgument = PivotTemplateArgument | PivotDataArgument | PivotHandlerArg
 
 interface PivotArguments {
     template?: PivotTemplateArgument;
-    data?: PivotDataArgument;
+    dataset?: PivotDataArgument;
     handler?: PivotHandlerArgument;
 }
+
+
+
+
+
+
+
+interface PivotSession {
+    UseCustomElementTemplateName(templateName: string): Array<HTMLElement>;
+}
+class PivotSession implements PivotSession {
+    name: string = "PivotSession";
+
+    public static UseCustomElementTemplateName(templateName: string): Array<HTMLElement> {
+        let occurs: Array<HTMLElement> = [];
+
+        customElements.define(templateName, class extends HTMLElement {
+            constructor() { super(); }
+            connectedCallback() { occurs.push(this); }
+        });
+    
+        return occurs;
+    }
+}
+
+
+
+
+
+
+
 interface Pivot {
     args?: PivotArguments;
     new<T extends PivotArguments>(args: T): { args: T };
+    whenDefined(occur: HTMLElement): void;
 }
-
 class Pivot implements Pivot {
     name: string = "Pivot";
 
     args?: PivotArguments = {};
 
     constructor(args?: PivotArguments) {
-        if (
-            args === undefined
-            || args === null
-        ) return;
+        if (args === undefined) return;
 
-        sess.customElementsOccurrences = [];
-        customElements.define(`template-${args.template}`, class extends HTMLElement {
-            constructor() {
-                super();
-            }
-            connectedCallback() {
-                sess.customElementsOccurrences.push(this);
-            }
-        });
+        let templateName = `template-${args.template}`;
 
-        customElements.whenDefined(`template-${args.template}`).then(() => {
-            sess.customElementsOccurrences.map(occur => {
-                this.args = {...args};
+        let occurs = PivotSession.UseCustomElementTemplateName(templateName);
 
-                if (
-                    this.args !== undefined
-                    && this.args !== null
-                ) {
-                    if (
-                        this.args.data !== undefined
-                        && this.args.data !== null
-                    ) {
-                        this.args.data = merge(this.args.data, occur.dataset);
-                    }
+        customElements.whenDefined(templateName).then(() => {
+            this.args = {...args};
 
-                    if (
-                        this.args.handler !== undefined
-                        && this.args.handler !== null
-                    ) {
-                        iterate(this.args.handler, (handlerName, handlerValue) => {
-                            if (
-                                this.args !== undefined
-                                && this.args !== null
-                            ) {
-                                switch(handlerName) {
-                                    case "init":
-                                        handlerValue.apply(this.args.data);
-                                        break;
-    
-                                    default:
-                                        break;
-                                }
-                            }
-                        })
-                    }
-                }
-            });
-        });
+            occurs.map(occur => {
+                if (this.args === undefined) return;
+                this.args.dataset = {...args.dataset};
+                this.args.dataset = merge(this.args.dataset, occur.dataset);
+                this.whenDefined(occur);
+            })
+        })
     }
+
+    whenDefined(occur: HTMLElement): void {}
 }
