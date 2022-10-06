@@ -1,5 +1,5 @@
 "use strict";
-new class Writer extends Pivot {
+new class Writer extends PivotCore.Pivot {
     constructor() {
         super();
         this.data = {
@@ -15,28 +15,27 @@ new class Writer extends Pivot {
         let interval = parseInt(this.data.interval.toString());
         let timeout = parseInt(this.data.timeout.toString());
         let onloadclass = this.data.onloadclass;
-        let alreadyInitialized = false;
-        init();
-        window.addEventListener("scroll", () => { init(); }, true);
-        function init() {
-            if (!alreadyInitialized && inViewport(target)) {
-                alreadyInitialized = true;
-                if (!isNull(timeout)) {
-                    setTimeout(() => { startTyping(); }, timeout);
-                }
-                else {
-                    startTyping();
-                }
+        let oldTargetInnerHTML = target.innerHTML;
+        inViewport(target).then(() => {
+            if (!isNull(timeout)) {
+                setTimeout(() => { startTyping(); }, timeout);
             }
-        }
+            else {
+                startTyping();
+            }
+        });
         function startTyping() {
-            if (!isNull(onloadclass))
+            if (!isNull(onloadclass)) {
                 target.classList.add(onloadclass);
+            }
+            target.innerHTML = "";
             setCounter((newValue) => {
                 if (message[newValue] !== undefined) {
                     target.innerHTML += message[newValue];
                 }
-            }, 0, message.length, interval);
+            }, 0, message.length, interval).then(() => {
+                target.innerHTML += oldTargetInnerHTML;
+            });
         }
     }
 };

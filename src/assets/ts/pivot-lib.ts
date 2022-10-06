@@ -4,8 +4,7 @@ interface WriterData {
     timeout: number;
     onloadclass: string;
 }
-
-new class Writer extends Pivot{
+new class Writer extends PivotCore.Pivot{
     data: WriterData;
     public constructor() {
         super();
@@ -25,30 +24,31 @@ new class Writer extends Pivot{
         let timeout     = parseInt(this.data.timeout.toString());
         let onloadclass = this.data.onloadclass;
 
-        let alreadyInitialized = false;
-
-        init();
-        
-        window.addEventListener("scroll", () => { init(); }, true);
-        
-        function init(): void {
-            if (!alreadyInitialized && inViewport(target)) {
-                alreadyInitialized = true;
-                if (!isNull(timeout)) {
-                    setTimeout(() => { startTyping(); }, timeout);
-                } else {
-                    startTyping();
-                }
+        let oldTargetInnerHTML = target.innerHTML;
+                
+        inViewport(target).then(() => {
+            if (!isNull(timeout)) {
+                setTimeout(() => { startTyping(); }, timeout);
+            } else {
+                startTyping();
             }
-        }
+        })
         
         function startTyping(): void {
-            if (!isNull(onloadclass)) target.classList.add(onloadclass);
+            if (!isNull(onloadclass)) {
+                target.classList.add(onloadclass);
+            }
+
+            target.innerHTML = "";
+
             setCounter((newValue) => {
                 if (message[newValue as keyof (typeof message)] !== undefined) {
                     target.innerHTML += message[newValue as keyof (typeof message)];
                 }
-            }, 0, message.length, interval);
+
+            }, 0, message.length, interval).then(() => {
+                target.innerHTML += oldTargetInnerHTML;
+            });
         }
     }
 }
