@@ -5,8 +5,11 @@
     box-sizing: border-box;
 }
 
-body {
-    background-color: rgb(244, 244, 244);
+html {
+    background-image: url("./bg-grid.jpg");
+    background-color: #E7EBF2;
+    background-repeat: repeat;
+    background-size: .5rem;
 }
 
 section {
@@ -28,23 +31,23 @@ section small {
     font-size: .75rem;
 }
 
-template-writer::before {
+pivot-writer::before {
     content: "Pivot:";
     margin-right: .5rem;
-    color: rgb(0, 51, 255);
+    color: #3B82F7;
     font-weight: bold;
 }
 
-template-writer {
+pivot-writer {
     display: block;
-    box-shadow: 0 .2rem 0 rgb(0, 0, 0, 0.10);
-    margin: .5rem .25rem;
+    box-shadow: 0 .25rem 0 #000000;
+    margin: .75rem .25rem;
     width: max-content;
     padding: .75rem 1rem;
-    background-color: rgb(255, 255, 255);
+    background-color: #ffffff;
     border-radius: 0 10px 10px;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    border: 1px solid #000000;
     opacity: 0%;
     filter: blur(10px);
     scale: 50%;

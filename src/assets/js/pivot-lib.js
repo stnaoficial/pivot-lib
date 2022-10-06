@@ -1,32 +1,25 @@
 "use strict";
 new class Writer extends Pivot {
     constructor() {
-        super({
-            template: "writer",
-            dataset: {
-                message: "placeholder",
-                interval: 50,
-                timeout: 0,
-                onloadclass: ""
-            }
-        });
+        super();
+        this.data = {
+            message: "Lorem Ipsum",
+            interval: 50,
+            timeout: 0,
+            onloadclass: ""
+        };
+        this.init(this.data);
     }
-    whenDefined(occur) {
-        if (this.args === undefined)
-            return;
-        restrictTo(this.args.dataset.message, "string", true);
-        restrictTo(parseInt(this.args.dataset.interval), "number", true);
-        restrictTo(parseInt(this.args.dataset.timeout), "number");
-        restrictTo(this.args.dataset.onloadclass, "string");
-        let message = this.args.dataset.message;
-        let interval = parseInt(this.args.dataset.interval);
-        let timeout = parseInt(this.args.dataset.timeout);
-        let onloadclass = this.args.dataset.onloadclass;
+    whenDefined(target) {
+        let message = this.data.message;
+        let interval = parseInt(this.data.interval.toString());
+        let timeout = parseInt(this.data.timeout.toString());
+        let onloadclass = this.data.onloadclass;
         let alreadyInitialized = false;
         init();
         window.addEventListener("scroll", () => { init(); }, true);
         function init() {
-            if (!alreadyInitialized && inViewport(occur)) {
+            if (!alreadyInitialized && inViewport(target)) {
                 alreadyInitialized = true;
                 if (!isNull(timeout)) {
                     setTimeout(() => { startTyping(); }, timeout);
@@ -38,10 +31,10 @@ new class Writer extends Pivot {
         }
         function startTyping() {
             if (!isNull(onloadclass))
-                occur.classList.add(onloadclass);
+                target.classList.add(onloadclass);
             setCounter((newValue) => {
                 if (message[newValue] !== undefined) {
-                    occur.innerHTML += message[newValue];
+                    target.innerHTML += message[newValue];
                 }
             }, 0, message.length, interval);
         }
