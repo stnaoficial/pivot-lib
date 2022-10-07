@@ -5,7 +5,7 @@
     box-sizing: border-box;
 }
 
-html {
+.bg-grid {
     background-image: url("./bg-grid.jpg");
     background-color: #E7EBF2;
     background-repeat: repeat;
@@ -14,7 +14,7 @@ html {
 
 section {
     overflow: hidden;
-    height: 100vh;
+    height: 900px;
     display: grid;
     place-items: center;
     grid-column: 1fr;
@@ -24,7 +24,7 @@ section {
 section h1 {
     font-weight: normal;
     font-size: 2rem;
-    margin-bottom: 1rem;
+    margin: 1rem 0;
 }
 
 section small {
@@ -34,7 +34,7 @@ section small {
 pivot-writer::before {
     content: "Pivot:";
     margin-right: .5rem;
-    color: #3B82F7;
+    color: #0038FF;
     font-weight: bold;
 }
 
@@ -51,16 +51,11 @@ pivot-writer {
     opacity: 0%;
     filter: blur(10px);
     scale: 50%;
+    transition: .25s;
 }
 
-.loaded {
-    animation: fade-out .25s  ease-out forwards;
-}
-
-@keyframes fade-out {
-    to {
-        opacity: 100%;
-        filter: unset;
-        scale: 100%;
-    }
+.show {
+    opacity: 100%;
+    filter: unset;
+    scale: 100%;
 }

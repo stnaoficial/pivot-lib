@@ -3,9 +3,11 @@ interface WriterData {
     interval: number;
     timeout: number;
     onloadclass: string;
+    statement: string;
 }
 new class Writer extends PivotCore.Pivot{
     data: WriterData;
+    pivot!: HTMLElement;
     public constructor() {
         super();
 
@@ -13,20 +15,23 @@ new class Writer extends PivotCore.Pivot{
             message: "Lorem Ipsum",
             interval: 50,
             timeout: 0,
-            onloadclass: ""
+            onloadclass: "",
+            statement: ""
         }
 
         this.init(this.data);
     }
-    public whenDefined(target: HTMLElement): void {
-        let message     = this.data.message;
-        let interval    = parseInt(this.data.interval.toString());
-        let timeout     = parseInt(this.data.timeout.toString());
-        let onloadclass = this.data.onloadclass;
+    public whenDefined(): void {
+        const pivot = this.pivot;
 
-        let oldTargetInnerHTML = target.innerHTML;
-                
-        inViewport(target).then(() => {
+        const message     = this.data.message;
+        const interval    = parseInt(this.data.interval.toString());
+        const timeout     = parseInt(this.data.timeout.toString());
+        const onloadclass = this.data.onloadclass;
+
+        const pivotInnerHTMLBackup = pivot.innerHTML;
+
+        onViewport(pivot).then(() => {
             if (!isNull(timeout)) {
                 setTimeout(() => { startTyping(); }, timeout);
             } else {
@@ -36,18 +41,18 @@ new class Writer extends PivotCore.Pivot{
         
         function startTyping(): void {
             if (!isNull(onloadclass)) {
-                target.classList.add(onloadclass);
+                pivot.classList.add(onloadclass);
             }
 
-            target.innerHTML = "";
+            pivot.innerHTML = "";
 
             setCounter((newValue) => {
                 if (message[newValue as keyof (typeof message)] !== undefined) {
-                    target.innerHTML += message[newValue as keyof (typeof message)];
+                    pivot.innerHTML += message[newValue as keyof (typeof message)];
                 }
 
             }, 0, message.length, interval).then(() => {
-                target.innerHTML += oldTargetInnerHTML;
+                pivot.innerHTML += pivotInnerHTMLBackup;
             });
         }
     }
