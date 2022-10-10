@@ -38,7 +38,7 @@ function setCounter(callback: (value: number) => void, intialValue: number, last
     return new Promise((resolve, reject) => {
         const intervalId = setInterval(() => {
             callback(intialValue);
-            intialValue++; 
+            intialValue++;
             if (intialValue >= lastValue) { 
                 resolve("complete"); 
                 clearInterval(intervalId);
@@ -68,53 +68,80 @@ function inViewport(el: HTMLElement): boolean {
     return false;
 } 
 
-function pascalCaseToKebabCase(pascalCase: string) {
+function pascalCaseToKebabCase(pascalCase: string): string {
     return pascalCase.replace(/([a-z0–9])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
-function stringAsScript<T>(stringStatement: any, instance: any): T {
-    return eval(`(function() { ${stringStatement}; return this; })`).apply({...instance});
+function script<T>(statements: any, instance?: any): T {
+    return eval(`(function() { ${statements}; return this; })`).apply({...instance});
 }
 
+
+
+
+
+
+
+
+
 namespace PivotCore {
-    type PivotData = object;
+
+
+
+
     export interface Pivot {
-        new<T extends PivotData>(data?: T): { data: T };
-        init(data: PivotData): void;
-        dataWillBeDefined<T extends PivotData>(data: T | any): T;
-        whenDefined(pivot: HTMLElement): void;
+        new<T extends object>(data?: T): { data: T };
+        defineDefaultData(data: object): void;
+        dataWillBeDefined<T extends object>(data: T): T;
+        whenDefined(element?: HTMLElement): void;
     }
+
     export class Pivot implements Pivot {
         name: string = "Pivot";
-        public constructor(data?: PivotData) { if (data !== undefined) this.init(data); }
-        public init(data: PivotData): void {
-            const pivot: Pivot = this.constructor.prototype;
-    
+        
+        public constructor(data?: object) {
+            if (data !== undefined) this.defineDefaultData(data);
+        }
+
+        public defineDefaultData(data: object): void {
+            const child: Pivot = this.constructor.prototype;
+
             const tagNamePrefix: string = pascalCaseToKebabCase(this.name);
-            const tagNameSufix: string = pascalCaseToKebabCase(pivot.constructor.name);
+            const tagNameSufix: string = pascalCaseToKebabCase(child.constructor.name);
             const tagName: string = `${tagNamePrefix}-${tagNameSufix}`;
     
-            customElements.define(tagName, class extends HTMLElement {
-                instance?: object;
-                public constructor() { super(); }
+            customElements.define(tagName, class extends HTMLElement {                
+                public constructor() {
+                    super();
+                }
+
                 public connectedCallback(): void {
-                    // if (data === undefined) return;
-                    customElements.whenDefined(tagName).then(() => {
-                        let instance: object = {
-                            pivot: this,
-                            data: overwrite(pivot.dataWillBeDefined({...data}), this.dataset) 
-                        }
+                    var instance: any = {};
 
-                        if (this.hasAttribute("customscript")) {
-                           instance = stringAsScript(this.getAttribute("customscript"), instance);
-                        }
+                    instance.data = overwrite(child.dataWillBeDefined({...data}), this.dataset)
 
-                        pivot.whenDefined.apply({...instance});
-                    });
+                    if (this.hasAttribute("script")) {
+                        instance = script(this.getAttribute("script"), instance);
+                    }
+
+                    child.whenDefined.apply(instance, [this]);
                 }
             });
         }
-        public dataWillBeDefined(data: PivotData): PivotData { return data; }
-        public whenDefined(): void {}
+        
+        public dataWillBeDefined(data: object): object {
+            return data;
+        }
+
+        public whenDefined(element?: HTMLElement): void {
+            /** Do something */
+        }
     }
+
+
+
+
+
+
+
 }

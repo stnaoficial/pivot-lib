@@ -71,8 +71,8 @@ function inViewport(el) {
 function pascalCaseToKebabCase(pascalCase) {
     return pascalCase.replace(/([a-z0–9])([A-Z])/g, "$1-$2").toLowerCase();
 }
-function stringAsScript(stringStatement, instance) {
-    return eval(`(function() { ${stringStatement}; return this; })`).apply({ ...instance });
+function script(statements, instance) {
+    return eval(`(function() { ${statements}; return this; })`).apply({ ...instance });
 }
 var PivotCore;
 (function (PivotCore) {
@@ -80,32 +80,33 @@ var PivotCore;
         constructor(data) {
             this.name = "Pivot";
             if (data !== undefined)
-                this.init(data);
+                this.defineDefaultData(data);
         }
-        init(data) {
-            const pivot = this.constructor.prototype;
+        defineDefaultData(data) {
+            const child = this.constructor.prototype;
             const tagNamePrefix = pascalCaseToKebabCase(this.name);
-            const tagNameSufix = pascalCaseToKebabCase(pivot.constructor.name);
+            const tagNameSufix = pascalCaseToKebabCase(child.constructor.name);
             const tagName = `${tagNamePrefix}-${tagNameSufix}`;
             customElements.define(tagName, class extends HTMLElement {
-                constructor() { super(); }
+                constructor() {
+                    super();
+                }
                 connectedCallback() {
-                    // if (data === undefined) return;
-                    customElements.whenDefined(tagName).then(() => {
-                        let instance = {
-                            pivot: this,
-                            data: overwrite(pivot.dataWillBeDefined({ ...data }), this.dataset)
-                        };
-                        if (this.hasAttribute("customscript")) {
-                            instance = stringAsScript(this.getAttribute("customscript"), instance);
-                        }
-                        pivot.whenDefined.apply({ ...instance });
-                    });
+                    var instance = {};
+                    instance.data = overwrite(child.dataWillBeDefined({ ...data }), this.dataset);
+                    if (this.hasAttribute("script")) {
+                        instance = script(this.getAttribute("script"), instance);
+                    }
+                    child.whenDefined.apply(instance, [this]);
                 }
             });
         }
-        dataWillBeDefined(data) { return data; }
-        whenDefined() { }
+        dataWillBeDefined(data) {
+            return data;
+        }
+        whenDefined(element) {
+            /** Do something */
+        }
     }
     PivotCore.Pivot = Pivot;
 })(PivotCore || (PivotCore = {}));

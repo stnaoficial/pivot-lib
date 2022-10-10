@@ -9,16 +9,15 @@ new class Writer extends PivotCore.Pivot {
             onloadclass: "",
             statement: ""
         };
-        this.init(this.data);
+        this.defineDefaultData(this.data);
     }
-    whenDefined() {
-        const pivot = this.pivot;
+    whenDefined(element) {
         const message = this.data.message;
         const interval = parseInt(this.data.interval.toString());
         const timeout = parseInt(this.data.timeout.toString());
         const onloadclass = this.data.onloadclass;
-        const pivotInnerHTMLBackup = pivot.innerHTML;
-        onViewport(pivot).then(() => {
+        const elementInnerHTMLBackup = element.innerHTML;
+        onViewport(element).then(() => {
             if (!isNull(timeout)) {
                 setTimeout(() => { startTyping(); }, timeout);
             }
@@ -28,15 +27,15 @@ new class Writer extends PivotCore.Pivot {
         });
         function startTyping() {
             if (!isNull(onloadclass)) {
-                pivot.classList.add(onloadclass);
+                element.classList.add(onloadclass);
             }
-            pivot.innerHTML = "";
+            element.innerHTML = "";
             setCounter((newValue) => {
                 if (message[newValue] !== undefined) {
-                    pivot.innerHTML += message[newValue];
+                    element.innerHTML += message[newValue];
                 }
             }, 0, message.length, interval).then(() => {
-                pivot.innerHTML += pivotInnerHTMLBackup;
+                element.innerHTML += elementInnerHTMLBackup;
             });
         }
     }

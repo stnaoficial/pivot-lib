@@ -7,7 +7,6 @@ interface WriterData {
 }
 new class Writer extends PivotCore.Pivot{
     data: WriterData;
-    pivot!: HTMLElement;
     public constructor() {
         super();
 
@@ -19,19 +18,17 @@ new class Writer extends PivotCore.Pivot{
             statement: ""
         }
 
-        this.init(this.data);
+        this.defineDefaultData(this.data);
     }
-    public whenDefined(): void {
-        const pivot = this.pivot;
-
-        const message     = this.data.message;
-        const interval    = parseInt(this.data.interval.toString());
-        const timeout     = parseInt(this.data.timeout.toString());
+    public whenDefined(element: HTMLElement): void {
+        const message = this.data.message;
+        const interval = parseInt(this.data.interval.toString());
+        const timeout = parseInt(this.data.timeout.toString());
         const onloadclass = this.data.onloadclass;
 
-        const pivotInnerHTMLBackup = pivot.innerHTML;
+        const elementInnerHTMLBackup = element.innerHTML;
 
-        onViewport(pivot).then(() => {
+        onViewport(element).then(() => {
             if (!isNull(timeout)) {
                 setTimeout(() => { startTyping(); }, timeout);
             } else {
@@ -41,18 +38,18 @@ new class Writer extends PivotCore.Pivot{
         
         function startTyping(): void {
             if (!isNull(onloadclass)) {
-                pivot.classList.add(onloadclass);
+                element.classList.add(onloadclass);
             }
 
-            pivot.innerHTML = "";
+            element.innerHTML = "";
 
             setCounter((newValue) => {
                 if (message[newValue as keyof (typeof message)] !== undefined) {
-                    pivot.innerHTML += message[newValue as keyof (typeof message)];
+                    element.innerHTML += message[newValue as keyof (typeof message)];
                 }
 
             }, 0, message.length, interval).then(() => {
-                pivot.innerHTML += pivotInnerHTMLBackup;
+                element.innerHTML += elementInnerHTMLBackup;
             });
         }
     }
