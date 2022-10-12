@@ -1,3 +1,6 @@
+import { PivotCore } from "../core/pivot-core";
+import { isNull, onViewport, setCounter } from "../utils/pivot-utils";
+
 interface WriterData {
     message: string;
     interval: number;

@@ -1,20 +1,19 @@
 {
-  "name": "pivot-lib",
+  "name": "pivot",
   "version": "1.0.0",
-  "main": "index.js",
   "license": "MIT",
+  "private": true,
   "devDependencies": {
-    "babel-minify": "^0.5.2",
-    "concurrently": "^7.3.0",
-    "express": "^4.18.1",
-    "nodemon": "^2.0.19",
-    "npm": "^8.19.1",
-    "tslint": "5.12.1",
-    "typescript": "3.3.3"
+    "glob": "^8.0.3",
+    "html-webpack-plugin": "^5.5.0",
+    "ts-loader": "^9.4.1",
+    "typescript": "^4.8.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1"
   },
   "scripts": {
-    "minify:js": "minify ./src/assets/js/*.js --out-file ./src/dist/js/index.min.js --mangle.keepClassName && rm *.js",
-    "dev": "concurrently \"tsc -w\" \"nodemon -q index.js\" ",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "webpack-dev-server --mode development && node webpack",
+    "prod": "webpack --mode production"
   }
 }
