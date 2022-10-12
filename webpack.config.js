@@ -1,9 +1,16 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-
 const glob = require('glob')
 const path = require('path');
 
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+const plugins = [
+  new HtmlWebpackPlugin({
+    template: path.resolve(__dirname, 'test/index.html'),
+  }),
+];
+
 module.exports = {
+  plugins: plugins,
   entry: glob.sync('./src/**/*.ts'),
   module: {
     rules: [
@@ -15,19 +22,14 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.ts', '.js', '.css'],
   },
   output: {
     filename: 'pivot.min.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'test/index.html'),
-    }) 
-  ],
   devServer: {
-    static: path.join(__dirname, "dist"),
+    static: path.join(__dirname, "test"),
     compress: true,
     port: 8000,
   },

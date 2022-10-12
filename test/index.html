@@ -4,27 +4,31 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <title>Pivot Development Mode</title>
 </head>
 <body>
-    <div align="center">
-        <h1>Pivot Development Mode</h1>
-        <small>Copyright © 2022 STNA</small>
-    </div>
-    <pivot-writer
-        data-message="Hello!"
-        data-onloadclass="show"
-        script="
-            console.log(this);
-        "
-    ></pivot-writer><br>
-    <pivot-writer
-        data-message="This is an example using Writer."
-        data-onloadclass="show"
-    ></pivot-writer><br>
-    <pivot-writer
-        data-message="It just works!"
-        data-onloadclass="show"
-    ></pivot-writer>
+    <section>
+        <div>
+            <h1>Pivot Development Environment.</h1>
+            <small>Copyright © 2022 STNA</small>
+        </div>
+    </section>
+    <section>
+        <div id="output">
+            <pivot-writer
+                data-message="Hello!"
+                data-onloadclass="show"
+            ></pivot-writer>
+            <pivot-writer
+                data-message="This is an example using Writer."
+                data-onloadclass="show"
+            ></pivot-writer>
+            <pivot-writer
+                data-message="It just works!"
+                data-onloadclass="show"
+            ></pivot-writer>
+        </div>
+    </section>
 </body>
 </html>

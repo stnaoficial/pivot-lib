@@ -1,15 +1,20 @@
 import { PivotCore } from "../core/pivot-core";
 import { isNull, onViewport, setCounter } from "../utils/pivot-utils";
 
-interface WriterData {
-    message: string;
-    interval: number;
-    timeout: number;
-    onloadclass: string;
-    statement: string;
+new class Empty extends PivotCore.Pivot {
+    constructor() {
+        super();
+        this.defineDefaultData({})
+    }
 }
 new class Writer extends PivotCore.Pivot{
-    data: WriterData;
+    data: {
+        message: string;
+        interval: number;
+        timeout: number;
+        onloadclass: string;
+        statement: string;
+    };
     public constructor() {
         super();
 
