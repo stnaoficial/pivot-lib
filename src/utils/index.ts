@@ -1,8 +1,17 @@
 export const nullValues  = ['', 0, null];
-export function isNull(arg: any): boolean {
+
+export function isNull(arg: any): boolean
+{
     return (nullValues.indexOf(arg) !== -1)? true : false;
 }
-export function iterate(callback: (argName: string, argValue: any) => void, args: object): void {
+
+export function cloneDeep(args: object): object
+{
+    return JSON.parse(JSON.stringify(args));
+}
+
+export function iterate(callback: (argName: string, argValue: any) => void, args: object): void
+{
     try {
         if (args === undefined) throw `The iterate arguments cannot be ${typeof args}`;
         if (callback === undefined) throw `The iterate callback cannot be ${typeof callback}`;
@@ -11,7 +20,9 @@ export function iterate(callback: (argName: string, argValue: any) => void, args
         console.error(e)
     }
 }
-export function overwrite(args: object, newArgs: object): object | undefined {
+
+export function overwrite(args: object, newArgs: object): object | undefined
+{
     try {
         if (args !== undefined && newArgs !== undefined) {
             iterate((argName: string, argValue: any) => {
@@ -25,8 +36,11 @@ export function overwrite(args: object, newArgs: object): object | undefined {
         console.error(e)
     }
 }
-export function setCounter(callback: (value: number) => void, intialValue: number, lastValue: number, interval: number): Promise<string> {
-    return new Promise((resolve, reject) => {
+
+export function setCounter(callback: (value: number) => void, intialValue: number, lastValue: number, interval: number): Promise<string>
+{
+    return new Promise((resolve, reject) => 
+    {
         const intervalId = setInterval(() => {
             callback(intialValue);
             intialValue++;
@@ -37,14 +51,18 @@ export function setCounter(callback: (value: number) => void, intialValue: numbe
         }, interval);
     })
 }
-export function onViewport(el: HTMLElement): Promise<boolean> {
-    if (el instanceof HTMLElement === false) throw `Cannot use ${ el }. ${ el } are not of type HTMLElement`;
-    return new Promise((resolve, reject) => {
+
+export function onViewport(el: HTMLElement): Promise<boolean>
+{    
+    return new Promise((resolve, reject) =>
+    {
         if (inViewport(el)) resolve(true);
         window.addEventListener('scroll', () => { if (inViewport(el)) resolve(true); });
     })
 }
-export function inViewport(el: HTMLElement): boolean {
+
+export function inViewport(el: HTMLElement): boolean
+{
     const rect = el.getBoundingClientRect();
     if (
         rect.top >= 0
@@ -56,11 +74,16 @@ export function inViewport(el: HTMLElement): boolean {
     }
     return false;
 }
-export function pascalCaseToKebabCase(pascalCase: string): string {
+
+export function pascalCaseToKebabCase(pascalCase: string): string
+{
     return pascalCase.replace(/([a-z0–9])([A-Z])/g, '$1-$2').toLowerCase();
 }
-export function script<T>(statements: any, instance?: any, consts: Array<any> = []): T {
+
+export function script<T>(statements: string | null = "", sess: object = {}, consts: Array<any> = []): T
+{
     const constsNames = consts.map(([constsName, constsValue]) => { return constsName; }).join(", ");
     const constsValues = consts.map(([constsName, constsValue]) => { return constsValue; });
-    return eval(`(function(${constsNames}) { ${statements}; return this; })`).apply({...instance}, constsValues);
+
+    return eval(`(function(${constsNames}) { ${statements}; return this; })`).apply(cloneDeep(sess), constsValues);
 }

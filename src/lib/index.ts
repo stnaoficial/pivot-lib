@@ -1,13 +1,17 @@
-import { PivotCore } from "../core/pivot-core";
-import { isNull, onViewport, setCounter } from "../utils/pivot-utils";
+import { PivotCore } from "../core/index";
+import { isNull, onViewport, setCounter } from "../utils/index";
 
-new class Empty extends PivotCore.Pivot {
-    constructor() {
+new class Empty extends PivotCore.Pivot
+{
+    constructor()
+    {
         super();
         this.defineDefaultData({})
     }
 }
-new class Writer extends PivotCore.Pivot{
+
+new class Writer extends PivotCore.Pivot
+{
     data: {
         message: string;
         interval: number;
@@ -15,7 +19,9 @@ new class Writer extends PivotCore.Pivot{
         onloadclass: string;
         statement: string;
     };
-    public constructor() {
+
+    public constructor()
+    {
         super();
 
         this.data = {
@@ -28,7 +34,9 @@ new class Writer extends PivotCore.Pivot{
 
         this.defineDefaultData(this.data);
     }
-    public whenDefined(element: HTMLElement): void {
+
+    public whenDefined(element: HTMLElement): void
+    {
         const message = this.data.message;
         const interval = parseInt(this.data.interval.toString());
         const timeout = parseInt(this.data.timeout.toString());
