@@ -1,46 +1,27 @@
 import { PivotCore } from "../core/index";
 import { isNull, onViewport, setCounter } from "../utils/index";
 
-new class Empty extends PivotCore.Pivot
-{
-    constructor()
-    {
-        super();
-        this.defineDefaultData({})
-    }
-}
+new class Empty extends PivotCore.Pivot {}
 
 new class Writer extends PivotCore.Pivot
 {
-    data: {
-        message: string;
-        interval: number;
-        timeout: number;
-        onloadclass: string;
-        statement: string;
-    };
-
-    public constructor()
+    public data(): PivotTypes.PivotData
     {
-        super();
-
-        this.data = {
+        return {
             message: "Lorem Ipsum",
             interval: 50,
             timeout: 0,
             onloadclass: "",
             statement: ""
         }
-
-        this.defineDefaultData(this.data);
     }
 
-    public whenDefined(element: HTMLElement): void
+    public whenDefined(element: HTMLElement, data: PivotTypes.PivotData): void
     {
-        const message = this.data.message;
-        const interval = parseInt(this.data.interval.toString());
-        const timeout = parseInt(this.data.timeout.toString());
-        const onloadclass = this.data.onloadclass;
+        const message     = data.message;
+        const interval    = parseInt(data.interval.toString());
+        const timeout     = parseInt(data.timeout.toString());
+        const onloadclass = data.onloadclass;
 
         const elementInnerHTMLBackup = element.innerHTML;
 

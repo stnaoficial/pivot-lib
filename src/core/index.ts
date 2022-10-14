@@ -6,19 +6,16 @@ export namespace PivotCore
     {
         name: string = "Pivot";
         
-        public constructor(data?: PivotTypes.PivotData)
+        public constructor()
         {
-            if (data !== undefined) this.defineDefaultData(data);
-        }
-        
-        public defineDefaultData(data: PivotTypes.PivotData): void
-        {
-            const child: PivotTypes.Pivot = this.constructor.prototype;
-    
+            const child: PivotTypes.Pivot     = this.constructor.prototype;
+
+            const data:  PivotTypes.PivotData = this.data();
+
             const tagNamePrefix: string = pascalCaseToKebabCase(this.name);
             const tagNameSufix:  string = pascalCaseToKebabCase(child.constructor.name);
             const tagName:       string = `${tagNamePrefix}-${tagNameSufix}`;
-    
+
             customElements.define(tagName, class extends HTMLElement {
                 public constructor()
                 {
@@ -29,15 +26,19 @@ export namespace PivotCore
                 {
                     var sess: any = {};
     
-                    sess.data = overwrite(child.dataWillBeDefined(cloneDeep(data)), this.dataset)
+                    sess.data = overwrite(child.dataWillBeDefined(cloneDeep(data)), this.dataset);
     
                     if (this.hasAttribute("script")) {
                         sess = script(this.getAttribute("script"), sess, [['element', this]]);
                     }
     
-                    child.whenDefined.apply(sess, [this]);
+                    child.whenDefined.apply({}, [this, sess.data]);
                 }
             });
+        }
+
+        public data(): PivotTypes.PivotData {
+            return {};
         }
         
         public dataWillBeDefined<T extends PivotTypes.PivotData>(data: T): T
@@ -45,7 +46,7 @@ export namespace PivotCore
             return data;
         }
         
-        public whenDefined(element?: HTMLElement): void
+        public whenDefined(element?: HTMLElement, data?: PivotTypes.PivotData): void
         {
             /** Do something */
         }

@@ -1,10 +1,10 @@
 declare namespace PivotTypes
 {
-    type PivotData = object;
+    type PivotData = object | any;
 
     interface Pivot {
-        defineDefaultData(data: PivotData): void;
+        data(): PivotTypes.PivotData;
         dataWillBeDefined<T extends PivotData>(data: T): T;
-        whenDefined(element?: HTMLElement): void;
+        whenDefined(element?: HTMLElement, data?: PivotTypes.PivotData): void;
     }
 }
