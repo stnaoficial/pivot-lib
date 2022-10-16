@@ -5,7 +5,7 @@ export function isNull(arg: any): boolean
     return (nullValues.indexOf(arg) !== -1)? true : false;
 }
 
-export function cloneDeep(args: object): object
+export function cloneDeep(args: any): object
 {
     return JSON.parse(JSON.stringify(args));
 }
@@ -39,8 +39,7 @@ export function overwrite(args: object, newArgs: object): object | undefined
 
 export function setCounter(callback: (value: number) => void, intialValue: number, lastValue: number, interval: number): Promise<string>
 {
-    return new Promise((resolve, reject) => 
-    {
+    return new Promise((resolve, reject) => {
         const intervalId = setInterval(() => {
             callback(intialValue);
             intialValue++;
@@ -54,9 +53,9 @@ export function setCounter(callback: (value: number) => void, intialValue: numbe
 
 export function onViewport(el: HTMLElement): Promise<boolean>
 {    
-    return new Promise((resolve, reject) =>
-    {
+    return new Promise((resolve, reject) => {
         if (inViewport(el)) resolve(true);
+        
         window.addEventListener('scroll', () => { if (inViewport(el)) resolve(true); });
     })
 }
@@ -80,10 +79,7 @@ export function pascalCaseToKebabCase(pascalCase: string): string
     return pascalCase.replace(/([a-z0–9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
-export function script<T>(statements: string | null = "", sess: object = {}, consts: Array<any> = []): T
+export function script<T>(statements: string | null = "", instance: object = {}): T
 {
-    const constsNames = consts.map(([constsName, constsValue]) => { return constsName; }).join(", ");
-    const constsValues = consts.map(([constsName, constsValue]) => { return constsValue; });
-
-    return eval(`(function(${constsNames}) { ${statements}; return this; })`).apply(cloneDeep(sess), constsValues);
+    return eval(`(function() { ${statements}; return this; })`).apply(instance);
 }

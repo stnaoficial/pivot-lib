@@ -8,36 +8,53 @@ export namespace PivotCore
         
         public constructor()
         {
-            const child: PivotTypes.Pivot     = this.constructor.prototype;
+            Pivot.UseCase(this.constructor.prototype);
+        }
 
-            const data:  PivotTypes.PivotData = this.data();
-
-            const tagNamePrefix: string = pascalCaseToKebabCase(this.name);
-            const tagNameSufix:  string = pascalCaseToKebabCase(child.constructor.name);
-            const tagName:       string = `${tagNamePrefix}-${tagNameSufix}`;
+        private static UseCase(prototype: PivotTypes.Pivot)
+        {
+            const tagName: string = pascalCaseToKebabCase(this.name + prototype.constructor.name);
 
             customElements.define(tagName, class extends HTMLElement {
-                public constructor()
-                {
+                public constructor() 
+                { 
                     super();
                 }
-                
+
                 public connectedCallback(): void
                 {
-                    var sess: any = {};
-    
-                    sess.data = overwrite(child.dataWillBeDefined(cloneDeep(data)), this.dataset);
-    
+                    var target: any = {};
+
+                    target.element = this;
+
+                    target.data = overwrite(prototype.dataWillBeDefined(cloneDeep(prototype.data())), this.dataset);
+
                     if (this.hasAttribute("script")) {
-                        sess = script(this.getAttribute("script"), sess, [['element', this]]);
+                        target = script(this.getAttribute("script"), target);
                     }
-    
-                    child.whenDefined.apply({}, [this, sess.data]);
+
+                    prototype.whenDefined.apply({}, [target.element, target.data]);
+                }
+                
+                public disconnectedCallback(): void
+                {
+                    /** Do something */
+                }
+                
+                public adoptedCallback(): void
+                {
+                    /** Do something */
+                }
+                
+                public attributeChangedCallback(name: string, oldValue: string, newValue: string): void
+                {
+                    /** Do something */
                 }
             });
         }
 
-        public data(): PivotTypes.PivotData {
+        public data(): PivotTypes.PivotData
+        {
             return {};
         }
         
