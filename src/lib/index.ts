@@ -1,53 +1,50 @@
-import { PivotCore } from "../core/index";
-import { isNull, onViewport, setCounter } from "../utils/index";
+// import { PivotCore } from "../core/pivot-core";
+// import { isNull, onViewport, setCounter } from "../utils/index";
 
-new class Empty extends PivotCore.Pivot {}
+// new class Writer extends PivotCore.Template
+// {
+//     public data(): any
+//     {
+//         return {
+//             message: "Lorem Ipsum",
+//             interval: 50,
+//             timeout: 0,
+//             onloadclass: "",
+//             statement: ""
+//         }
+//     }
 
-new class Writer extends PivotCore.Pivot
-{
-    public data(): PivotTypes.PivotData
-    {
-        return {
-            message: "Lorem Ipsum",
-            interval: 50,
-            timeout: 0,
-            onloadclass: "",
-            statement: ""
-        }
-    }
+//     public whenDefined(element: HTMLElement, data: any): void
+//     {        
+//         const output = element.querySelector("[data-message]") || new HTMLElement;
 
-    public whenDefined(element: HTMLElement, data: PivotTypes.PivotData): void
-    {
-        const message     = data.message;
-        const interval    = parseInt(data.interval.toString());
-        const timeout     = parseInt(data.timeout.toString());
-        const onloadclass = data.onloadclass;
+//         const outputInnerHTMLBackup = output.innerHTML;
 
-        const elementInnerHTMLBackup = element.innerHTML;
-
-        onViewport(element).then(() => {
-            if (!isNull(timeout)) {
-                setTimeout(() => { startTyping(); }, timeout);
-            } else {
-                startTyping();
-            }
-        })
+//         onViewport(element).then(() => {
+//             if (!isNull(parseInt(data.timeout))) {
+//                 setTimeout(() => { startTyping(); }, parseInt(data.timeout));
+//             } else {
+//                 startTyping();
+//             }
+//         })
         
-        function startTyping(): void {
-            if (!isNull(onloadclass)) {
-                element.classList.add(onloadclass);
-            }
+//         function startTyping(): void {
+//             if (!isNull(data.onloadclass)) {
+//                 element.classList.add(data.onloadclass);
+//             }
 
-            element.innerHTML = "";
+//             output.innerHTML = "";
 
-            setCounter((newValue) => {
-                if (message[newValue as keyof (typeof message)] !== undefined) {
-                    element.innerHTML += message[newValue as keyof (typeof message)];
-                }
+//             setCounter((newValue) => {
+//                 if (data.message[newValue as keyof (typeof data.message)] !== undefined) {
+//                     output.innerHTML += data.message[newValue as keyof (typeof data.message)];
+//                 }
 
-            }, 0, message.length, interval).then(() => {
-                element.innerHTML += elementInnerHTMLBackup;
-            });
-        }
-    }
-}
+//             }, 0, data.message.length, parseInt(data.interval.toString())).then(() => {
+//                 output.innerHTML += outputInnerHTMLBackup;
+//             });
+//         }
+
+//         return data;
+//     }
+// }
