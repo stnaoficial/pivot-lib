@@ -8,9 +8,16 @@
     <title>Pivot Development Mode</title>
 </head>
 <body>
-    <pivot-new extends="./header.html" name="header-component"></pivot-new>
+    <pvt-new
+        use="Messager"
+        extends="message.html"
+        data-title="some title"
+        data-message="some message"
+    ></pvt-new>
+    <pvt-new
+        use="XML"
+        scr=""
+        return=""
+    ></pvt-new>
 </body>
-<script>
-    // Pivot.UseCase("./header.html", "pivot-header");
-</script>
 </html>
