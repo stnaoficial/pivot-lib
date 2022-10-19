@@ -10,14 +10,10 @@
 <body>
     <pvt-new
         use="Messager"
-        extends="message.html"
-        data-title="some title"
-        data-message="some message"
-    ></pvt-new>
-    <pvt-new
-        use="XML"
-        scr=""
-        return=""
-    ></pvt-new>
+        includes="Message.html"
+        data-message="Hello World!"
+    >
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem, nemo! Nemo vero error provident deserunt suscipit, explicabo similique molestias hic sapiente eos architecto repellendus deleniti sed quia ut, quaerat facere.</p>
+    </pvt-new>
 </body>
 </html>
