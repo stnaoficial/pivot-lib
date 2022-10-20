@@ -1,4 +1,4 @@
-import { PivotElement } from "./instance/custom-element";
+import { CustomElements } from "./instance/custom-elements";
 
 export {};
 
@@ -17,30 +17,16 @@ declare global
 
 /** 
  * Initializes all necessary procedures. Creates an
- * Pivot instance in the window
+ * instance in the global window environment variable
  * @required
  * @ignore 
  */
 window.Pivot = window.Pivot || (() => {
-    /** Events before, private */
-
-    customElements.define(
-        "pivot-element",
-        class extends HTMLElement
-        {
-            constructor()
-            {
-                super();
-            }
-            connectedCallback(): void
-            {
-                new PivotElement(this);
-            }
-        }
-    );
+    /** Procedures before */
+    CustomElements.Define("html-fragment");
 
 })() || new class {
-    /** Events after, public */
+    /** Procedures after */
     elements: [HTMLElement][] = [];
 
 }

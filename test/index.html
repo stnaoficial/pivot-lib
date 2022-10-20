@@ -4,29 +4,26 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" type="text/css" href="style.css"> -->
     <title>Pivot Development Mode</title>
 </head>
 <body>
-    <pivot-element
-        use-pivot="Post"
-        use-fragment="Message.frag.html"
-
-        data-title="Lorem ipsum"
-        data-subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+    <html-fragment
+        src="./message.frag.html"
+        frag-title="some title"
+        frag-subtitle="some subtitle"
     >
-        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Velit tenetur tempora atque dolorum quisquam deleniti dolor sunt sed sint quo eos officiis necessitatibus, quae recusandae accusantium doloribus vel suscipit? Quae!</p>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laudantium dolorum quo, illo expedita ratione impedit aspernatur voluptates quaerat alias maiores ullam doloribus beatae rem, dolor blanditiis reprehenderit repudiandae atque natus!</p>
-    </pivot-element>
-    <pivot-element
-        use-pivot="Post"
-        use-fragment="Message.frag.html"
-
-        data-title="Lorem ipsum"
-        data-subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Enim ullam dignissimos nulla autem at natus atque voluptatum, illo quis quia harum rem temporibus libero, reiciendis similique id minus, omnis praesentium!
+        </p>
+    </html-fragment>
+    <html-fragment
+        src="./message.frag.html"
+        frag-title="some title"
+        frag-subtitle="some subtitle"
     >
-        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Velit tenetur tempora atque dolorum quisquam deleniti dolor sunt sed sint quo eos officiis necessitatibus, quae recusandae accusantium doloribus vel suscipit? Quae!</p>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laudantium dolorum quo, illo expedita ratione impedit aspernatur voluptates quaerat alias maiores ullam doloribus beatae rem, dolor blanditiis reprehenderit repudiandae atque natus!</p>
-    </pivot-element>
+        <p>
+            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Tenetur dolorem saepe ex. Aut, asperiores recusandae? Exercitationem rem, officiis quas praesentium impedit porro dignissimos commodi adipisci, obcaecati veritatis vel natus. Aliquid?
+        </p>
+    </html-fragment>
 </body>
 </html>
