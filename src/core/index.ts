@@ -1,4 +1,6 @@
-import { Session } from "./instance/session";
+import { PivotElement } from "./instance/custom-element";
+
+export {};
 
 /**
  * Modify glabal scope declaration
@@ -19,15 +21,26 @@ declare global
  * @required
  * @ignore 
  */
-window.Pivot = window.Pivot || class
-{
-    session: any = new Session();
+window.Pivot = window.Pivot || (() => {
+    /** Events before, private */
 
-    static Use(entries: [any][]): void
-    {
-        console.trace(entries);
-    }
+    customElements.define(
+        "pivot-element",
+        class extends HTMLElement
+        {
+            constructor()
+            {
+                super();
+            }
+            connectedCallback(): void
+            {
+                new PivotElement(this);
+            }
+        }
+    );
+
+})() || new class {
+    /** Events after, public */
+    elements: [HTMLElement][] = [];
+
 }
-
-/** For an easy access */
-export const Pivot = window.Pivot;

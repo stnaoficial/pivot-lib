@@ -8,12 +8,25 @@
     <title>Pivot Development Mode</title>
 </head>
 <body>
-    <pvt-new
-        use="Post"
-        include="Message.html"
-        data-title="Hello World!"
-        data-message="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+    <pivot-element
+        use-pivot="Post"
+        use-fragment="Message.frag.html"
+
+        data-title="Lorem ipsum"
+        data-subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
     >
-    </pvt-new>
+        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Velit tenetur tempora atque dolorum quisquam deleniti dolor sunt sed sint quo eos officiis necessitatibus, quae recusandae accusantium doloribus vel suscipit? Quae!</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laudantium dolorum quo, illo expedita ratione impedit aspernatur voluptates quaerat alias maiores ullam doloribus beatae rem, dolor blanditiis reprehenderit repudiandae atque natus!</p>
+    </pivot-element>
+    <pivot-element
+        use-pivot="Post"
+        use-fragment="Message.frag.html"
+
+        data-title="Lorem ipsum"
+        data-subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+    >
+        <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Velit tenetur tempora atque dolorum quisquam deleniti dolor sunt sed sint quo eos officiis necessitatibus, quae recusandae accusantium doloribus vel suscipit? Quae!</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laudantium dolorum quo, illo expedita ratione impedit aspernatur voluptates quaerat alias maiores ullam doloribus beatae rem, dolor blanditiis reprehenderit repudiandae atque natus!</p>
+    </pivot-element>
 </body>
 </html>
