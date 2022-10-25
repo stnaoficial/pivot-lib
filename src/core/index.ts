@@ -1,4 +1,4 @@
-import { CustomElements } from "./instance/custom-elements";
+import HTMLFragments from "./instance/html-fragments";
 
 export {};
 
@@ -23,10 +23,8 @@ declare global
  */
 window.Pivot = window.Pivot || (() => {
     /** Procedures before */
-    CustomElements.Define("html-fragment");
+    HTMLFragments();
 
 })() || new class {
     /** Procedures after */
-    elements: [HTMLElement][] = [];
-
 }
